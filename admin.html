@@ -1,0 +1,2587 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="logo.png" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta charset="UTF-8" />
+    <title>Tastea Admin Hub & Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: #f8fafc;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+    </style>
+  </head>
+  <body class="text-slate-800 flex flex-col min-h-screen m-0 p-0">
+    <audio id="notification-audio" preload="auto">
+      <source
+        src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        type="audio/mpeg"
+      />
+    </audio>
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header
+      class="bg-slate-900 text-white p-4 shadow-xl sticky top-0 z-50 border-b border-amber-500/30"
+    >
+      <div
+        class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4"
+      >
+        <div class="flex items-center space-x-3">
+          <img
+            src="logo.png"
+            alt="Tastea Logo"
+            class="w-11 h-11 object-cover rounded-2xl bg-white p-0.5 shadow-md border border-amber-400"
+          />
+          <div>
+            <h1 class="font-black text-base tracking-tight text-amber-400">
+              TASTEA ADMIN CONTROL HUB
+            </h1>
+            <p class="text-[11px] text-slate-400 font-bold">
+              UPI: 9629511751@ybl | Corporate Operations
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-2 text-xs">
+          <button
+            type="button"
+            onclick="switchTab('dashboard')"
+            id="btn-tab-dashboard"
+            class="bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl transition cursor-pointer shadow-md"
+          >
+            📊 Dashboard
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('menu')"
+            id="btn-tab-menu"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            🍲 Menu & Slots
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('buildings')"
+            id="btn-tab-buildings"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            🏢 Buildings & Discs
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('crm')"
+            id="btn-tab-crm"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            👥 CRM & Credit
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('billing')"
+            id="btn-tab-billing"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            🧾 Bulk Billing
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('marketing')"
+            id="btn-tab-marketing"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            📢 Marketing & Campaigns
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('reports')"
+            id="btn-tab-reports"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            📁 Reports Hub
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('settings')"
+            id="btn-tab-settings"
+            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer"
+          >
+            ⚙️ Settings
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full p-4 sm:p-6 space-y-6 flex-1 pb-24">
+      <!-- TAB 1: DASHBOARD -->
+      <div id="tab-dashboard" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3">
+          <div
+            class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-emerald-100 font-black uppercase tracking-wider"
+            >
+              ⚡ Pay Now (UPI)
+            </h4>
+            <p class="text-2xl font-black mt-1" id="admin-total-collections">
+              ₹0
+            </p>
+          </div>
+          <div
+            class="bg-gradient-to-br from-rose-500 to-pink-600 text-white p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-rose-100 font-black uppercase tracking-wider"
+            >
+              ⚠️ Pay Later Dues
+            </h4>
+            <p class="text-2xl font-black mt-1" id="admin-total-dues">₹0</p>
+          </div>
+          <div
+            class="bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-amber-950 font-black uppercase tracking-wider"
+            >
+              🚀 Total Revenue
+            </h4>
+            <p class="text-2xl font-black mt-1" id="admin-total-sales">₹0</p>
+          </div>
+          <div
+            class="bg-gradient-to-br from-indigo-500 to-violet-600 text-white p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-indigo-100 font-black uppercase tracking-wider"
+            >
+              📦 Today's Orders
+            </h4>
+            <p
+              class="text-2xl font-black mt-1"
+              id="admin-realtime-orders-count"
+            >
+              0
+            </p>
+          </div>
+          <div
+            class="bg-gradient-to-br from-emerald-600 to-green-700 text-white p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-emerald-100 font-black uppercase tracking-wider"
+            >
+              🟢 Veg Sold
+            </h4>
+            <p class="text-2xl font-black mt-1" id="admin-veg-count">0</p>
+          </div>
+          <div
+            class="bg-gradient-to-br from-red-600 to-rose-700 text-white p-4 rounded-3xl shadow-md space-y-1"
+          >
+            <h4
+              class="text-[10px] text-rose-100 font-black uppercase tracking-wider"
+            >
+              🔴 Non-Veg Sold
+            </h4>
+            <p class="text-2xl font-black mt-1" id="admin-nonveg-count">0</p>
+          </div>
+        </div>
+
+        <div
+          class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4"
+        >
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <h3
+              class="font-black text-sm uppercase tracking-wider text-amber-400"
+            >
+              📊 Global Veg & Non-Veg Slot Quotas
+            </h3>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-slate-300 font-bold">Global Max Quotas:</span>
+              <input
+                type="number"
+                id="veg-limit-input"
+                value="50"
+                onchange="saveCategoryLimits()"
+                class="w-16 bg-slate-800 text-emerald-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+              />
+              (Veg Max)
+              <input
+                type="number"
+                id="nonveg-limit-input"
+                value="50"
+                onchange="saveCategoryLimits()"
+                class="w-16 bg-slate-800 text-rose-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+              />
+              (Non-Veg Max)
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              class="bg-white/10 border border-white/10 p-4 rounded-2xl space-y-2"
+            >
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-black text-emerald-300 uppercase"
+                  >🟢 Veg Remaining Slots</span
+                >
+                <span
+                  class="font-mono font-black text-white"
+                  id="veg-slot-progress"
+                  >0 / 50 Available</span
+                >
+              </div>
+              <div
+                class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/10"
+              >
+                <div
+                  id="veg-progress-bar"
+                  class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+            <div
+              class="bg-white/10 border border-white/10 p-4 rounded-2xl space-y-2"
+            >
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-black text-rose-300 uppercase"
+                  >🔴 Non-Veg Remaining Slots</span
+                >
+                <span
+                  class="font-mono font-black text-white"
+                  id="nonveg-slot-progress"
+                  >0 / 50 Available</span
+                >
+              </div>
+              <div
+                class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/10"
+              >
+                <div
+                  id="nonveg-progress-bar"
+                  class="bg-gradient-to-r from-rose-500 to-pink-500 h-full transition-all duration-500"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+        >
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider"
+            >
+              🏢 Building & Employee-Wise Live Report (LIFO - Newest First)
+            </h3>
+            <div class="flex items-center gap-2 flex-wrap">
+              <input
+                type="text"
+                id="order-search-input"
+                placeholder="🔍 Search order..."
+                oninput="renderFilteredOrders()"
+                class="bg-slate-50 border p-2.5 rounded-xl text-xs font-bold w-44"
+              />
+              <select
+                id="building-filter-select"
+                onchange="renderFilteredOrders()"
+                class="bg-slate-50 border p-2.5 rounded-xl text-xs font-bold"
+              >
+                <option value="all">🏢 All Buildings</option>
+              </select>
+            </div>
+          </div>
+          <div
+            class="overflow-x-auto w-full rounded-2xl border border-slate-200"
+          >
+            <table class="w-full text-left text-xs">
+              <thead
+                class="bg-slate-900 text-white uppercase text-[10px] tracking-wider"
+              >
+                <tr>
+                  <th class="p-3">Time (LIFO)</th>
+                  <th class="p-3">Building / Location</th>
+                  <th class="p-3">Employee Name</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Items</th>
+                  <th class="p-3">Total ₹</th>
+                  <th class="p-3">Mode</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody
+                id="admin-orders-table-body"
+                class="bg-white divide-y divide-slate-100"
+              >
+                <tr>
+                  <td colspan="9" class="p-6 text-center text-slate-400">
+                    No orders found for today.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MENU & SLOTS -->
+      <div id="tab-menu" class="space-y-6 hidden">
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-5"
+        >
+          <div class="flex justify-between items-center pt-2">
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider"
+              id="menu-form-title"
+            >
+              🍲 Daily Menu Hub & Item Assignment
+            </h3>
+            <button
+              type="button"
+              onclick="resetMenuForm()"
+              id="cancel-menu-btn"
+              class="hidden text-xs text-rose-600 font-bold underline cursor-pointer"
+            >
+              Cancel Edit
+            </button>
+          </div>
+
+          <input type="hidden" id="edit-menu-id" value="" />
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Item Name *</label
+              >
+              <input
+                type="text"
+                id="m-name"
+                placeholder="Crispy Chicken Roll"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Price (₹) *</label
+              >
+              <input
+                type="number"
+                id="m-price"
+                placeholder="40"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 font-bold mb-1"
+              >Category Type *</label
+            >
+            <select
+              id="m-type"
+              class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+            >
+              <option value="veg">🟢 Veg</option>
+              <option value="non_veg">🔴 Non-Veg</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 text-xs">
+            <div class="flex-1">
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Product Image (URL or Browse File)</label
+              >
+              <input
+                type="text"
+                id="m-image"
+                placeholder="Image URL or Upload JPEG/PNG"
+                class="w-full bg-slate-50 border p-3 rounded-2xl text-xs"
+              />
+            </div>
+            <input
+              type="file"
+              id="m-img-file"
+              accept="image/jpeg, image/png, image/jpg"
+              onchange="uploadProductImage(this)"
+              class="hidden"
+            />
+            <div class="flex items-end">
+              <button
+                type="button"
+                onclick="document.getElementById('m-img-file').click()"
+                class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-3 rounded-2xl cursor-pointer shadow-sm"
+              >
+                Browse Image 📁
+              </button>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <button
+              type="button"
+              onclick="saveMenuItem()"
+              class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs cursor-pointer shadow-md"
+            >
+              ✨ Save Menu Item
+            </button>
+            <input
+              type="file"
+              id="csv-file-input"
+              accept=".csv"
+              class="text-xs file:bg-indigo-50 file:text-indigo-700 file:border-0 file:p-2.5 file:rounded-xl cursor-pointer"
+            />
+            <button
+              type="button"
+              onclick="handleBulkCsvUpload()"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-2xl text-xs cursor-pointer shadow-sm"
+            >
+              📂 Bulk CSV Upload
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800 text-white uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Item Name</th>
+                  <th class="p-3">Price & Type</th>
+                  <th class="p-3">Booked vs Max Slot</th>
+                  <th class="p-3">Assignment (Assign Today ★)</th>
+                  <th class="p-3">Action</th>
+                </tr>
+              </thead>
+              <tbody
+                id="admin-menu-list"
+                class="bg-white divide-y divide-slate-100"
+              >
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-400">
+                    No items.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: BUILDINGS & DISCOUNTS -->
+      <div id="tab-buildings" class="space-y-6 hidden">
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-5"
+        >
+          <div class="flex justify-between items-center">
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider"
+              id="building-form-title"
+            >
+              🏢 QR Standee, Cutoff & Building-Wise Discounts
+            </h3>
+            <button
+              type="button"
+              onclick="resetBuildingForm()"
+              id="cancel-building-btn"
+              class="hidden text-xs text-rose-600 font-bold underline cursor-pointer"
+            >
+              Cancel Edit
+            </button>
+          </div>
+          <input type="hidden" id="edit-building-id" value="" />
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Building Name *</label
+              >
+              <input
+                type="text"
+                id="bldg-name"
+                placeholder="Alpha Tech Park"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Block / Wing</label
+              >
+              <input
+                type="text"
+                id="bldg-block"
+                placeholder="Block A"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Floor No</label
+              >
+              <input
+                type="text"
+                id="bldg-floor"
+                placeholder="Floor 3"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >QR Slug ID</label
+              >
+              <input
+                type="text"
+                id="bldg-slug"
+                placeholder="Auto-generated"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Order Closed Time (Cutoff) *</label
+              >
+              <input
+                type="time"
+                id="bldg-cutoff"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-rose-600"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Delivery Time Interval Slot *</label
+              >
+              <select
+                id="bldg-del-time"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              >
+                <option value="3:30 PM - 4:00 PM">3:30 PM - 4:00 PM</option>
+                <option value="4:00 PM - 4:30 PM">4:00 PM - 4:30 PM</option>
+                <option value="4:30 PM - 5:00 PM">4:30 PM - 5:00 PM</option>
+                <option value="5:00 PM - 5:30 PM">5:00 PM - 5:30 PM</option>
+                <option value="5:30 PM - 6:00 PM">5:30 PM - 6:00 PM</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Delivery Charge (₹)</label
+              >
+              <input
+                type="number"
+                id="bldg-delivery-charge"
+                placeholder="0"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              />
+            </div>
+          </div>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-amber-50/60 p-4 rounded-2xl border border-amber-200"
+          >
+            <div>
+              <label class="block text-[10px] text-amber-900 font-bold mb-1"
+                >Building-Wise Discount Type</label
+              >
+              <select
+                id="bldg-discount-type"
+                class="w-full bg-white border p-3 rounded-2xl font-bold"
+              >
+                <option value="flat">Flat Amount (₹)</option>
+                <option value="percentage">Percentage (%)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-amber-900 font-bold mb-1"
+                >Discount Value (Amount or %)</label
+              >
+              <input
+                type="number"
+                id="bldg-discount-value"
+                placeholder="e.g. 5 for 5% or ₹5"
+                class="w-full bg-white border p-3 rounded-2xl font-bold"
+              />
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button
+              type="button"
+              onclick="saveBuildingRules()"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3.5 px-6 rounded-2xl text-xs cursor-pointer shadow-md"
+            >
+              💾 Save Building Rules & QR
+            </button>
+          </div>
+
+          <div class="pt-4 border-t">
+            <h4
+              class="font-black text-slate-900 text-xs uppercase tracking-wider"
+            >
+              Registered QR Standee Locations & Cutoffs
+            </h4>
+          </div>
+          <div id="qr-links-container" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: CRM & CREDIT MANAGEMENT -->
+      <div id="tab-crm" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            class="bg-white p-5 rounded-3xl shadow-md border border-slate-200/80 space-y-3 hover:shadow-lg transition"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-bullhorn text-amber-600 text-base"></i> Bulk
+              Dues WhatsApp Broadcast
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Instantly dispatch customized payment collection reminders to all
+              users with pending credit balances.
+            </p>
+            <button
+              onclick="sendBulkDueReminders()"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow-md cursor-pointer flex items-center gap-2"
+            >
+              <i class="fa-brands fa-whatsapp text-base"></i> Broadcast Dues
+              Reminders Now ⚡
+            </button>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-3xl shadow-md border border-slate-200/80 space-y-3 hover:shadow-lg transition"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-file-pdf text-rose-600 text-base"></i>
+              Delivery Challans & PDF Reports
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Generate perfectly aligned, professional PDF delivery challans
+              slot-wise for easy dispatch.
+            </p>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button
+                onclick="downloadSlotWisePdfChallan()"
+                class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2.5 rounded-xl text-xs shadow-md cursor-pointer flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-file-arrow-down"></i> Slot-Wise Challan
+                PDF
+              </button>
+              <button
+                onclick="markAllDeliveredToday()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer shadow-sm"
+              >
+                ✅ Mark All Delivered Today
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+        >
+          <div class="flex justify-between items-center flex-wrap gap-2">
+            <div>
+              <h3
+                class="font-black text-slate-900 text-sm uppercase tracking-wider"
+              >
+                👥 Realtime Customer Directory & Credit Control
+              </h3>
+              <p class="text-xs text-slate-500 font-medium">
+                Manage individual credit limits, clear dues manually, and filter
+                by building or outstanding dues.
+              </p>
+            </div>
+            <button
+              onclick="loadCrmCustomers()"
+              class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold px-4 py-2 rounded-xl text-xs cursor-pointer"
+            >
+              🔄 Refresh List
+            </button>
+          </div>
+
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-2xl border"
+          >
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Filter by Building</label
+              >
+              <select
+                id="crm-building-filter"
+                onchange="renderFilteredCrm()"
+                class="w-full bg-white border p-2.5 rounded-xl font-bold"
+              >
+                <option value="all">🏢 All Buildings</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Filter by Dues Status</label
+              >
+              <select
+                id="crm-due-filter"
+                onchange="renderFilteredCrm()"
+                class="w-full bg-white border p-2.5 rounded-xl font-bold"
+              >
+                <option value="all">⚡ All Customers</option>
+                <option value="has_dues">
+                  ⚠️ Has Outstanding Dues (&gt; ₹0)
+                </option>
+                <option value="no_dues">🟢 Zero Dues</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900 text-white uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Customer Name</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Building / Location</th>
+                  <th class="p-3">Credit Limit (₹)</th>
+                  <th class="p-3">Outstanding Dues (₹)</th>
+                  <th class="p-3">
+                    Actions (Edit Limit / Clear Dues / WhatsApp)
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                id="admin-crm-table-body"
+                class="bg-white divide-y divide-slate-100"
+              >
+                <tr>
+                  <td colspan="6" class="p-6 text-center text-slate-400">
+                    Loading customers...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: BULK BILLING -->
+      <div id="tab-billing" class="space-y-6 hidden">
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-5 max-w-3xl mx-auto"
+        >
+          <div class="flex items-center space-x-3 border-b pb-4">
+            <img
+              src="logo.png"
+              alt="Logo"
+              class="w-12 h-12 object-cover rounded-2xl border shadow-sm"
+            />
+            <div>
+              <h3
+                class="font-black text-slate-900 text-base uppercase tracking-wider"
+              >
+                🧾 Tastea Bulk Billing & Invoice Generator
+              </h3>
+              <p class="text-xs text-slate-500 font-medium">
+                Create and download a neat, clean professional PDF invoice for
+                corporate clients.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Customer / Company Name *</label
+              >
+              <input
+                type="text"
+                id="bill-client-name"
+                placeholder="Alpha Tech Solutions"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-900"
+              />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Contact Phone *</label
+              >
+              <input
+                type="tel"
+                id="bill-client-phone"
+                placeholder="9840012345"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-900"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 font-bold mb-1"
+              >Billing Address *</label
+            >
+            <textarea
+              id="bill-client-address"
+              rows="2"
+              placeholder="Floor 3, Alpha Tower, Junction, Tirunelveli"
+              class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-900"
+            ></textarea>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border space-y-3">
+            <h4
+              class="font-black text-slate-900 text-xs uppercase tracking-wider"
+            >
+              Item Details
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+              <div class="sm:col-span-6">
+                <input
+                  type="text"
+                  id="bill-item-name"
+                  placeholder="Item Name (e.g. Tea Flask & Snacks)"
+                  class="w-full bg-white border p-2.5 rounded-xl font-bold"
+                />
+              </div>
+              <div class="sm:col-span-3">
+                <input
+                  type="number"
+                  id="bill-item-price"
+                  placeholder="Price (₹)"
+                  class="w-full bg-white border p-2.5 rounded-xl font-bold"
+                />
+              </div>
+              <div class="sm:col-span-3">
+                <input
+                  type="number"
+                  id="bill-item-qty"
+                  placeholder="Qty"
+                  value="1"
+                  class="w-full bg-white border p-2.5 rounded-xl font-bold"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="addBillingItem()"
+              class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer shadow-sm"
+            >
+              + Add Item to Bill
+            </button>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900 text-white uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Item Description</th>
+                  <th class="p-3 text-right">Price (₹)</th>
+                  <th class="p-3 text-center">Qty</th>
+                  <th class="p-3 text-right">Total (₹)</th>
+                  <th class="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody
+                id="billing-items-table"
+                class="bg-white divide-y divide-slate-100"
+              >
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-400">
+                    No items added yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button
+              type="button"
+              onclick="generateUserBulkBillPdf()"
+              class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3.5 px-8 rounded-2xl text-xs cursor-pointer shadow-lg uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-file-invoice-dollar text-base"></i> Download
+              Professional PDF Bill 📄
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: MARKETING & CAMPAIGNS -->
+      <div id="tab-marketing" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-bullhorn text-amber-600 text-base"></i>
+              WhatsApp Promotional Broadcast
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Broadcast daily specials, combo offers, and menu updates directly
+              to registered office employees.
+            </p>
+            <div class="space-y-3 pt-2 text-xs">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                  >Campaign Message Template</label
+                >
+                <textarea
+                  id="promo-msg-text"
+                  rows="3"
+                  class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+                >
+Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo at ₹12 only. Scan your desk QR to order now! ☕🎉</textarea
+                >
+              </div>
+              <button
+                onclick="sendMarketingBroadcast()"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <i class="fa-brands fa-whatsapp text-base"></i> Send Promotional
+                WhatsApp Blast 🚀
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-qrcode text-indigo-600 text-base"></i>
+              Standee QR Marketing Hub
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Review active standee locations across buildings and quickly copy
+              or print standalone links for office branding.
+            </p>
+            <div
+              id="marketing-standee-summary"
+              class="bg-slate-50 p-4 rounded-2xl border space-y-2 text-xs max-h-[180px] overflow-y-auto"
+            >
+              Loading standee locations...
+            </div>
+            <button
+              onclick="switchTab('buildings')"
+              class="w-full bg-slate-900 hover:bg-slate-800 text-amber-300 font-black py-3 rounded-2xl text-xs cursor-pointer shadow-sm"
+            >
+              Manage Building QR Standees 🏢
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 7: REPORTS HUB -->
+      <div id="tab-reports" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-calendar-days text-amber-600 text-base"></i>
+              Date-Wise Sales & Collection Statement
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Generate and download structured date-wise reports of sales
+              revenue and UPI collections.
+            </p>
+            <div class="flex items-center gap-3 pt-2">
+              <input
+                type="date"
+                id="statement-date-picker"
+                class="bg-slate-50 border p-3 rounded-2xl text-xs font-bold"
+              />
+              <button
+                onclick="downloadDateWiseStatement()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-2xl text-xs cursor-pointer shadow-md"
+              >
+                📥 Download Report CSV
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+          >
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-file-pdf text-rose-600 text-base"></i>
+              Professional Entity-Wise PDF Report
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Generate custom date-interval reports detailing item-wise,
+              building-wise, and user-wise sales & collection.
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                  >From Date</label
+                >
+                <input
+                  type="date"
+                  id="report-start-date"
+                  class="w-full bg-slate-50 border p-2 rounded-xl font-bold"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                  >To Date</label
+                >
+                <input
+                  type="date"
+                  id="report-end-date"
+                  class="w-full bg-slate-50 border p-2 rounded-xl font-bold"
+                />
+              </div>
+            </div>
+            <div class="pt-2">
+              <button
+                onclick="generateProfessionalIntervalPdfReport()"
+                class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <i class="fa-solid fa-file-arrow-down"></i> Download Interval
+                PDF Report
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+        >
+          <h3
+            class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+          >
+            <i class="fa-solid fa-chart-line text-indigo-600 text-base"></i>
+            Advanced Business Operation Success Reports
+          </h3>
+          <p class="text-xs text-slate-500 font-medium">
+            Download specialized analytics reports to optimize delivery slots,
+            credit recovery, building adoption, and quota utilization.
+          </p>
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2"
+          >
+            <button
+              onclick="downloadPeakHourSlotReport()"
+              class="bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-clock"></i> Peak Slot Analysis CSV
+            </button>
+            <button
+              onclick="downloadCreditAgingReport()"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-file-invoice-dollar"></i> Credit Aging CSV
+            </button>
+            <button
+              onclick="downloadBuildingPenetrationReport()"
+              class="bg-teal-600 hover:bg-teal-700 text-white font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-building"></i> Building Adoption CSV
+            </button>
+            <button
+              onclick="downloadQuotaUtilizationReport()"
+              class="bg-amber-600 hover:bg-amber-700 text-slate-950 font-black p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
+            >
+              <i class="fa-solid fa-pie-chart"></i> Quota Efficiency CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 8: SETTINGS -->
+      <div id="tab-settings" class="space-y-6 hidden">
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-6 max-w-2xl mx-auto"
+        >
+          <div class="border-b pb-3">
+            <h3
+              class="font-black text-slate-900 text-base uppercase tracking-wider"
+            >
+              ⚙️ System & Operations Settings
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Configure system audio alerts, global operational limits, and
+              session archiving.
+            </p>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <div
+              class="bg-slate-50 p-4 rounded-2xl border flex items-center justify-between"
+            >
+              <div>
+                <b class="text-slate-900 block text-sm"
+                  >Notification Sound Testing</b
+                >
+                <span class="text-slate-500"
+                  >Test audio chime when new orders or customer registrations
+                  arrive.</span
+                >
+              </div>
+              <button
+                type="button"
+                onclick="testNotificationSound()"
+                id="sound-btn-text"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer shadow-sm"
+              >
+                🔔 Test Sound
+              </button>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border space-y-3">
+              <b class="text-slate-900 block text-sm"
+                >Cutoff-Based Session Archive & Clear</b
+              >
+              <span class="text-slate-500 block"
+                >Archive orders up to the selected building cutoff time and
+                clear live active tables.</span
+              >
+              <div class="flex items-center gap-3 pt-1">
+                <select
+                  id="archive-cutoff-select"
+                  class="bg-white border p-2.5 rounded-xl font-bold flex-1"
+                >
+                  <option value="">-- Select Building Cutoff Time --</option>
+                </select>
+                <button
+                  onclick="archiveAndClearOrdersByCutoff()"
+                  class="bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold px-5 py-3 rounded-2xl cursor-pointer shadow-sm whitespace-nowrap"
+                >
+                  📦 Archive & Clear by Cutoff ⚡
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let currentBuildingDeliveryCharge = 0;
+      window.switchTab = function (tabName) {
+        [
+          "dashboard",
+          "menu",
+          "buildings",
+          "crm",
+          "billing",
+          "marketing",
+          "reports",
+          "settings",
+        ].forEach(function (t) {
+          var el = document.getElementById("tab-" + t);
+          var btn = document.getElementById("btn-tab-" + t);
+          if (el) el.classList.add("hidden");
+          if (btn)
+            btn.className =
+              "bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer";
+        });
+        var activeEl = document.getElementById("tab-" + tabName);
+        var activeBtn = document.getElementById("btn-tab-" + tabName);
+        if (activeEl) activeEl.classList.remove("hidden");
+        if (activeBtn)
+          activeBtn.className =
+            "bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl transition cursor-pointer shadow-md";
+      };
+
+      const SUPABASE_URL = "https://nqracjckmojkttgoemsl.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_66dRKnwJ75Z-U3wKOHgM2g_MfrpRcEE";
+      const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+      );
+
+      let allRegisteredLocations = [];
+      let allMenuItems = [];
+      let allFetchedOrders = [];
+      let lastKnownCustomerCount = 0;
+      let vegLimit = 50;
+      let nonVegLimit = 50;
+      let itemBookedCounts = {};
+      let billingCartItems = [];
+
+      function formatTimeTo12Hour(timeStr) {
+        if (!timeStr) return "N/A";
+        let parts = timeStr.split(":");
+        if (parts.length < 2) return timeStr;
+        let hours = parseInt(parts[0], 10);
+        let minutes = parts[1];
+        let ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${hours < 10 ? "0" + hours : hours}:${minutes} ${ampm}`;
+      }
+
+      async function initAdmin() {
+        try {
+          loadCategoryLimits();
+          await loadBuildingsForAdmin();
+          await loadMenuInventory();
+          await loadCrmCustomers();
+          await loadAdminDashboardData();
+
+          const datePicker = document.getElementById("statement-date-picker");
+          if (datePicker) datePicker.valueAsDate = new Date();
+
+          const todayStr = new Date().toISOString().split("T")[0];
+          document.getElementById("report-start-date").value = todayStr;
+          document.getElementById("report-end-date").value = todayStr;
+
+          // Mandatory auto sound test on initialization to verify speakers
+          setTimeout(() => {
+            playNotificationSound();
+          }, 800);
+
+          setInterval(() => {
+            loadAdminDashboardData();
+            loadCrmCustomers();
+          }, 5000);
+
+          supabaseClient
+            .channel("admin-realtime-channel")
+            .on(
+              "postgres_changes",
+              { event: "INSERT", schema: "public", table: "orders" },
+              () => {
+                playNotificationSound();
+                loadAdminDashboardData();
+              },
+            )
+            .on(
+              "postgres_changes",
+              { event: "INSERT", schema: "public", table: "employees" },
+              () => {
+                playNotificationSound();
+                loadCrmCustomers();
+              },
+            )
+            .subscribe();
+        } catch (err) {
+          console.log("Init warning:", err);
+        }
+      }
+      initAdmin();
+
+      function playNotificationSound() {
+        try {
+          const audio = document.getElementById("notification-audio");
+          if (audio) {
+            audio.currentTime = 0;
+            audio.volume = 1.0;
+            audio.play().catch(() => {});
+          }
+        } catch (e) {}
+      }
+
+      function testNotificationSound() {
+        playNotificationSound();
+        const btnText = document.getElementById("sound-btn-text");
+        if (btnText) {
+          btnText.innerText = "Sound Active! 🔊";
+          setTimeout(() => {
+            btnText.innerText = "Test Sound";
+          }, 2000);
+        }
+      }
+
+      window.saveCategoryLimits = function () {
+        vegLimit = Number(
+          document.getElementById("veg-limit-input").value || 50,
+        );
+        nonVegLimit = Number(
+          document.getElementById("nonveg-limit-input").value || 50,
+        );
+        localStorage.setItem("tastea_veg_limit", vegLimit);
+        localStorage.setItem("tastea_nonveg_limit", nonVegLimit);
+        loadAdminDashboardData();
+      };
+
+      function loadCategoryLimits() {
+        if (localStorage.getItem("tastea_veg_limit")) {
+          vegLimit = Number(localStorage.getItem("tastea_veg_limit"));
+          document.getElementById("veg-limit-input").value = vegLimit;
+        }
+        if (localStorage.getItem("tastea_nonveg_limit")) {
+          nonVegLimit = Number(localStorage.getItem("tastea_nonveg_limit"));
+          document.getElementById("nonveg-limit-input").value = nonVegLimit;
+        }
+      }
+
+      window.uploadProductImage = function (fileInput) {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById("m-image").value = e.target.result;
+          alert("📁 Image loaded successfully!");
+        };
+        reader.readAsDataURL(file);
+      };
+
+      window.handleBulkCsvUpload = function () {
+        const fileInput = document.getElementById("csv-file-input");
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Select a CSV file first");
+          return;
+        }
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+          complete: async function (results) {
+            for (let row of results.data) {
+              await supabaseClient.from("menu_items").insert([
+                {
+                  name: row.name || row.ItemName || "Item",
+                  price: Number(row.price || row.Price || 30),
+                  type: (row.type || "veg").toLowerCase(),
+                  is_todays_special: false,
+                },
+              ]);
+            }
+            alert("CSV imported successfully!");
+            loadMenuInventory();
+          },
+        });
+      };
+
+      async function loadMenuInventory() {
+        const { data } = await supabaseClient
+          .from("menu_items")
+          .select("*")
+          .order("id", { ascending: false });
+        allMenuItems = data || [];
+        let html = "";
+        allMenuItems.forEach(function (m) {
+          let bookedQty = itemBookedCounts[m.name.trim().toLowerCase()] || 0;
+          let maxLimit =
+            m.type === "non_veg" || m.type === "non-veg"
+              ? nonVegLimit
+              : vegLimit;
+          let slotBadge = m.is_todays_special
+            ? `<span class="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">${bookedQty} / ${maxLimit} Booked</span>`
+            : `<span class="text-slate-400 italic">Not Assigned</span>`;
+          let statusBtn = m.is_todays_special
+            ? `<button onclick="toggleTodayAssignment('${m.id}', false)" class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1.5 rounded text-xs">Unassign</button>`
+            : `<button onclick="toggleTodayAssignment('${m.id}', true)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-1.5 rounded text-xs shadow-sm">Assign Today ★</button>`;
+
+          html += `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-extrabold text-slate-900">${m.name}</td><td class="p-3 font-medium">₹${m.price} (${m.type})</td><td class="p-3">${slotBadge}</td><td class="p-3">${statusBtn}</td><td class="p-3"><button onclick="deleteMenu('${m.id}')" class="text-rose-600 font-bold">Del</button></td></tr>`;
+        });
+        document.getElementById("admin-menu-list").innerHTML =
+          html ||
+          '<tr><td colspan="5" class="p-4 text-center text-slate-400">No items.</td></tr>';
+      }
+
+      window.toggleTodayAssignment = async function (id, newState) {
+        await supabaseClient
+          .from("menu_items")
+          .update({ is_todays_special: newState })
+          .eq("id", id);
+        loadMenuInventory();
+      };
+
+      window.saveMenuItem = async function () {
+        const name = document.getElementById("m-name").value.trim();
+        const price = Number(document.getElementById("m-price").value || 0);
+        const type = document.getElementById("m-type").value;
+        const image_url = document.getElementById("m-image").value.trim();
+        if (!name || price <= 0) return;
+        await supabaseClient
+          .from("menu_items")
+          .insert([{ name, price, type, image_url, is_todays_special: false }]);
+        document.getElementById("m-name").value = "";
+        document.getElementById("m-price").value = "";
+        document.getElementById("m-image").value = "";
+        loadMenuInventory();
+      };
+
+      window.deleteMenu = async function (id) {
+        if (!confirm("Delete item?")) return;
+        await supabaseClient.from("menu_items").delete().eq("id", id);
+        loadMenuInventory();
+      };
+
+      async function loadBuildingsForAdmin() {
+        const { data } = await supabaseClient.from("locations").select("*");
+        allRegisteredLocations = data || [];
+        let html = "";
+        let mHtml = "";
+        let cutoffSelectHtml =
+          '<option value="">-- Select Building Cutoff Time --</option>';
+        const baseUrl = window.location.origin;
+
+        allRegisteredLocations.forEach(function (loc) {
+          let link = baseUrl + "/index.html?qr=" + loc.qr_code_hash;
+          let cutoff12 = formatTimeTo12Hour(loc.booking_cutoff_time);
+          let deliveryFee = Number(loc.delivery_charge || 0);
+          let discType = loc.discount_type || "flat";
+          let discVal = Number(loc.discount_value || 0);
+          let discText =
+            discVal > 0
+              ? discType === "percentage"
+                ? `${discVal}% Off`
+                : `₹${discVal} Off`
+              : "No Discount";
+
+          cutoffSelectHtml += `<option value="${loc.booking_cutoff_time}">${loc.building_name} (Cutoff: ${cutoff12})</option>`;
+
+          html += `<div class="bg-slate-50 p-4 rounded-2xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div><b class="text-slate-900">${loc.building_name}</b> (${loc.floor_no || "Ground"})
+                      <div class="text-[11px] text-slate-500 mt-0.5">Cutoff: <span class="text-rose-600 font-bold">${cutoff12}</span> | Slot: <span class="text-indigo-600 font-bold">${loc.delivery_time || "N/A"}</span> | Disc: <span class="text-emerald-600 font-bold">${discText}</span></div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <button onclick="downloadQrStandee('${loc.building_name}', '${loc.floor_no || "Ground"}', '${cutoff12}', '${loc.delivery_time || "4:00 PM - 4:30 PM"}', '${link}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer shadow-sm">📥 QR</button>
+                      <button onclick="populateEditBuilding('${loc.id}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">Edit</button>
+                      <button onclick="navigator.clipboard.writeText('${link}');alert('Copied QR Link!');" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">Copy</button>
+                      <button onclick="deleteBuilding('${loc.id}')" class="bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-1.5 rounded-xl font-bold text-xs cursor-pointer">Del</button>
+                    </div>
+                   </div>`;
+
+          mHtml += `<div class="bg-white p-3 rounded-xl border flex justify-between items-center text-xs">
+                      <div><b>${loc.building_name} (${loc.floor_no || "Ground"})</b><div class="text-[10px] text-slate-500">Discount: ${discText}</div></div>
+                      <button onclick="navigator.clipboard.writeText('${link}');alert('Copied Standee Link for Marketing!');" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg">Copy Link 🔗</button>
+                    </div>`;
+        });
+
+        document.getElementById("qr-links-container").innerHTML =
+          html || "No buildings added.";
+        let mSummary = document.getElementById("marketing-standee-summary");
+        if (mSummary) mSummary.innerHTML = mHtml || "No locations configured.";
+
+        let cutoffSel = document.getElementById("archive-cutoff-select");
+        if (cutoffSel) cutoffSel.innerHTML = cutoffSelectHtml;
+
+        let filterSelect = document.getElementById("building-filter-select");
+        if (filterSelect) {
+          let sHtml = '<option value="all">🏢 All Buildings</option>';
+          allRegisteredLocations.forEach(
+            (l) =>
+              (sHtml += `<option value="${l.id}">${l.building_name} (${l.floor_no || "Ground"})</option>`),
+          );
+          filterSelect.innerHTML = sHtml;
+        }
+      }
+
+      window.downloadQrStandee = function (
+        bldg,
+        floor,
+        cutoff12Hr,
+        delivery,
+        targetUrl,
+      ) {
+        let qrApiUrl =
+          "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+          encodeURIComponent(targetUrl);
+        let printWin = window.open("", "_blank");
+        if (!printWin) {
+          alert("Popup blocked!");
+          return;
+        }
+        printWin.document
+          .write(`<html><head><title>Tastea Standee - ${bldg}</title>
+          <style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#fff;}
+          .card{border:3px solid #d97706;border-radius:24px;padding:25px;width:340px;text-align:center;background:linear-gradient(to bottom right,#fffbeb,#ffedd5,#ffffff);box-shadow:0 10px 25px rgba(0,0,0,0.1);}
+          .logo-img{width:55px;height:55px;object-fit:cover;border-radius:12px;display:block;margin:0 auto 8px auto;border:1px solid #fde68a;background:#fff;padding:2px;}
+          .header{background:#f59e0b;color:#1e1b4b;font-weight:bold;font-size:10px;text-transform:uppercase;padding:5px;border-radius:8px;margin-bottom:10px;letter-spacing:1px;}
+          .title{font-size:18px;font-weight:900;color:#0f172a;margin:3px 0;}.sub{font-size:13px;font-weight:700;color:#b45309;margin-bottom:10px;}
+          .qr-box{background:#fff;padding:12px;border-radius:16px;border:2px solid #fde68a;display:inline-block;margin:5px 0;}
+          .qr-box img{width:160px;height:160px;display:block;}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;}
+          .info-box{background:#fff;border:1px solid #cbd5e1;padding:6px;border-radius:8px;font-size:10px;font-weight:bold;}
+          .info-box span{display:block;font-size:8px;text-transform:uppercase;color:#64748b;}.footer{font-size:9px;color:#475569;margin-top:10px;font-weight:600;line-height:1.3;}
+          </style></head><body><div class="card">
+          <img src="logo.png" class="logo-img" />
+          <div class="header">☕ Tastea Corporate SnackPass ☕</div>
+          <div class="title">${bldg}</div>
+          <div class="sub">🏢 ${floor}</div>
+          <div class="qr-box"><img src="${qrApiUrl}" /></div>
+          <div style="font-size:9px;font-weight:bold;color:#475569;text-transform:uppercase;margin-top:3px;">Scan with phone camera to order</div>
+          <div class="info-grid"><div class="info-box" style="border-color:#fca5a5;color:#991b1b;"><span>Order Closed</span>⏰ ${cutoff12Hr}</div>
+          <div class="info-box" style="border-color:#6ee7b7;color:#065f46;"><span>Desk Delivery</span>🚀 ${delivery}</div></div>
+          <div class="footer">Fresh snacks & hot flask brews delivered to your desk.<br/><b>Query Helplines:</b> 9629511751, 8754991879</div>
+          </div><script>window.onload=function(){setTimeout(function(){window.print();}, 500);}<\/script></body></html>`);
+        printWin.document.close();
+      };
+
+      window.populateEditBuilding = function (id) {
+        const loc = allRegisteredLocations.find((l) => l.id === id);
+        if (!loc) return;
+        document.getElementById("edit-building-id").value = loc.id;
+        document.getElementById("bldg-name").value = loc.building_name || "";
+        document.getElementById("bldg-block").value = loc.block_no || "";
+        document.getElementById("bldg-floor").value = loc.floor_no || "";
+        document.getElementById("bldg-slug").value = loc.qr_code_hash || "";
+        document.getElementById("bldg-cutoff").value =
+          loc.booking_cutoff_time || "";
+        document.getElementById("bldg-del-time").value =
+          loc.delivery_time || "4:00 PM - 4:30 PM";
+        document.getElementById("bldg-delivery-charge").value =
+          loc.delivery_charge || 0;
+        document.getElementById("bldg-discount-type").value =
+          loc.discount_type || "flat";
+        document.getElementById("bldg-discount-value").value =
+          loc.discount_value || 0;
+        document.getElementById("building-form-title").innerText =
+          "✏️ Edit Building: " + loc.building_name;
+        document
+          .getElementById("cancel-building-btn")
+          .classList.remove("hidden");
+        switchTab("buildings");
+      };
+
+      window.resetBuildingForm = function () {
+        document.getElementById("edit-building-id").value = "";
+        document.getElementById("bldg-name").value = "";
+        document.getElementById("bldg-block").value = "";
+        document.getElementById("bldg-floor").value = "";
+        document.getElementById("bldg-slug").value = "";
+        document.getElementById("bldg-cutoff").value = "";
+        document.getElementById("bldg-discount-value").value = "";
+        document.getElementById("building-form-title").innerText =
+          "🏢 QR Standee, Cutoff & Building-Wise Discounts";
+        document.getElementById("cancel-building-btn").classList.add("hidden");
+      };
+
+      window.deleteBuilding = async function (id) {
+        if (!confirm("Delete building?")) return;
+        await supabaseClient.from("locations").delete().eq("id", id);
+        loadBuildingsForAdmin();
+      };
+
+      window.saveBuildingRules = async function () {
+        const editId = document.getElementById("edit-building-id").value;
+        const building_name = document.getElementById("bldg-name").value.trim();
+        const block_no = document.getElementById("bldg-block").value.trim();
+        const floor_no = document.getElementById("bldg-floor").value.trim();
+        let qr_code_hash = document.getElementById("bldg-slug").value.trim();
+        const booking_cutoff_time =
+          document.getElementById("bldg-cutoff").value;
+        const delivery_time = document.getElementById("bldg-del-time").value;
+        const delivery_charge = Number(
+          document.getElementById("bldg-delivery-charge").value || 0,
+        );
+        const discount_type =
+          document.getElementById("bldg-discount-type").value;
+        const discount_value = Number(
+          document.getElementById("bldg-discount-value").value || 0,
+        );
+
+        if (!building_name) {
+          alert("Enter Building Name!");
+          return;
+        }
+        if (!qr_code_hash) {
+          qr_code_hash =
+            building_name.toLowerCase().replace(/[^a-z0-9]/g, "-") +
+            "-" +
+            (floor_no
+              ? floor_no.toLowerCase().replace(/[^a-z0-9]/g, "-")
+              : "ground");
+        }
+
+        const payload = {
+          building_name,
+          block_no,
+          floor_no,
+          qr_code_hash,
+          booking_cutoff_time,
+          delivery_time,
+          delivery_charge,
+          discount_type,
+          discount_value,
+        };
+
+        if (editId) {
+          await supabaseClient
+            .from("locations")
+            .update(payload)
+            .eq("id", editId);
+        } else {
+          await supabaseClient.from("locations").insert([payload]);
+        }
+
+        alert("✅ Building rules & discounts saved successfully!");
+        resetBuildingForm();
+        loadBuildingsForAdmin();
+      };
+
+      window.loadAdminDashboardData = async function () {
+        const { data: orders } = await supabaseClient
+          .from("orders")
+          .select(
+            "*, locations(building_name, floor_no), employees(name, phone)",
+          )
+          .order("id", { ascending: false }); // LIFO
+        allFetchedOrders = orders || [];
+        let totalSales = 0,
+          totalCollections = 0,
+          totalDues = 0,
+          totalVeg = 0,
+          totalNonVeg = 0;
+        itemBookedCounts = {};
+
+        allFetchedOrders.forEach((ord) => {
+          let amt = Number(ord.total_amount || 0);
+          totalSales += amt;
+          if (ord.payment_mode === "pay_now") totalCollections += amt;
+
+          if (ord.items_json) {
+            ord.items_json.forEach((i) => {
+              let qty = Number(i.qty || 1);
+              let key = (i.name || "").trim().toLowerCase();
+              itemBookedCounts[key] = (itemBookedCounts[key] || 0) + qty;
+              if (
+                key.includes("chicken") ||
+                key.includes("mutton") ||
+                key.includes("egg")
+              )
+                totalNonVeg += qty;
+              else totalVeg += qty;
+            });
+          }
+        });
+
+        const { data: employees } = await supabaseClient
+          .from("employees")
+          .select("due_amount");
+        if (employees)
+          employees.forEach((e) => (totalDues += Number(e.due_amount || 0)));
+
+        document.getElementById("admin-total-sales").innerText =
+          "₹" + totalSales;
+        document.getElementById("admin-total-collections").innerText =
+          "₹" + totalCollections;
+        document.getElementById("admin-total-dues").innerText = "₹" + totalDues;
+        document.getElementById("admin-realtime-orders-count").innerText =
+          allFetchedOrders.length;
+        document.getElementById("admin-veg-count").innerText = totalVeg;
+        document.getElementById("admin-nonveg-count").innerText = totalNonVeg;
+
+        let vegRem = Math.max(0, vegLimit - totalVeg);
+        let nonVegRem = Math.max(0, nonVegLimit - totalNonVeg);
+        document.getElementById("veg-slot-progress").innerText =
+          `${vegRem} Left (${totalVeg} Sold / ${vegLimit} Max)`;
+        document.getElementById("veg-progress-bar").style.width =
+          Math.min(100, Math.round((totalVeg / vegLimit) * 100)) + "%";
+        document.getElementById("nonveg-slot-progress").innerText =
+          `${nonVegRem} Left (${totalNonVeg} Sold / ${nonVegLimit} Max)`;
+        document.getElementById("nonveg-progress-bar").style.width =
+          Math.min(100, Math.round((totalNonVeg / nonVegLimit) * 100)) + "%";
+
+        renderFilteredOrders();
+        loadMenuInventory();
+      };
+
+      window.renderFilteredOrders = function () {
+        const buildingFilter = document.getElementById(
+          "building-filter-select",
+        ).value;
+        const searchQuery = (
+          document.getElementById("order-search-input")?.value || ""
+        )
+          .toLowerCase()
+          .trim();
+
+        let filtered = allFetchedOrders;
+        if (buildingFilter !== "all")
+          filtered = filtered.filter((o) => o.location_id === buildingFilter);
+        if (searchQuery) {
+          filtered = filtered.filter((o) => {
+            let empName = (o.employees?.name || "").toLowerCase();
+            let phone = (o.employees?.phone || "").toLowerCase();
+            let orderId = o.id.toString().toLowerCase();
+            return (
+              empName.includes(searchQuery) ||
+              phone.includes(searchQuery) ||
+              orderId.includes(searchQuery)
+            );
+          });
+        }
+
+        let tHtml = "";
+        filtered.forEach((ord) => {
+          let timeStr = new Date(ord.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          let items = (ord.items_json || [])
+            .map((i) => `${i.name} (x${i.qty})`)
+            .join(", ");
+
+          let bldg =
+            ord.locations && ord.locations.building_name
+              ? `${ord.locations.building_name} (${ord.locations.floor_no || "Ground"})`
+              : "Office Desk";
+
+          let empName = ord.employees ? ord.employees.name : "Walk-in";
+          let empPhone = ord.employees ? ord.employees.phone : "N/A";
+          let statusBadge = ord.is_delivered
+            ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">Delivered</span>`
+            : `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">Preparing</span>`;
+
+          tHtml += `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-mono font-bold text-indigo-600">${timeStr}</td><td class="p-3 font-medium">${bldg}</td><td class="p-3 font-extrabold text-slate-900">${empName}</td><td class="p-3 font-mono">${empPhone}</td><td class="p-3 text-slate-700">${items}</td><td class="p-3 font-black text-amber-600">₹${ord.total_amount}</td><td class="p-3 uppercase text-[10px] font-bold text-slate-500">${ord.payment_mode}</td><td class="p-3">${statusBadge}</td><td class="p-3"><button onclick="markDelivered('${ord.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded font-bold text-xs cursor-pointer shadow-sm">Mark Delivered</button></td></tr>`;
+        });
+        document.getElementById("admin-orders-table-body").innerHTML =
+          tHtml ||
+          '<tr><td colspan="9" class="p-6 text-center text-slate-400">No matching orders found.</td></tr>';
+      };
+
+      window.markDelivered = async function (id) {
+        await supabaseClient
+          .from("orders")
+          .update({ is_delivered: true })
+          .eq("id", id);
+        loadAdminDashboardData();
+      };
+
+      window.markAllDeliveredToday = async function () {
+        if (!confirm("Mark all pending orders as delivered for today?")) return;
+        for (let ord of allFetchedOrders) {
+          if (!ord.is_delivered) {
+            await supabaseClient
+              .from("orders")
+              .update({ is_delivered: true })
+              .eq("id", ord.id);
+          }
+        }
+        alert("✅ All orders marked as delivered successfully!");
+        loadAdminDashboardData();
+      };
+
+      let allFetchedEmployees = [];
+
+      window.loadCrmCustomers = async function () {
+        const { data: employees, error } = await supabaseClient
+          .from("employees")
+          .select("*, locations(building_name, floor_no)")
+          .order("id", { ascending: false });
+
+        if (error) {
+          console.error("Error loading employees:", error);
+          return;
+        }
+
+        allFetchedEmployees = employees || [];
+        if (
+          allFetchedEmployees.length > lastKnownCustomerCount &&
+          lastKnownCustomerCount !== 0
+        ) {
+          playNotificationSound();
+        }
+        lastKnownCustomerCount = allFetchedEmployees.length;
+
+        let bldgSelect = document.getElementById("crm-building-filter");
+        if (bldgSelect && allRegisteredLocations.length > 0) {
+          let opts = '<option value="all">🏢 All Buildings</option>';
+          allRegisteredLocations.forEach((l) => {
+            opts += `<option value="${l.id}">${l.building_name} (${l.floor_no || "Ground"})</option>`;
+          });
+          bldgSelect.innerHTML = opts;
+        }
+
+        renderFilteredCrm();
+      };
+
+      window.renderFilteredCrm = function () {
+        const bldgFilter =
+          document.getElementById("crm-building-filter")?.value || "all";
+        const dueFilter =
+          document.getElementById("crm-due-filter")?.value || "all";
+
+        let filtered = allFetchedEmployees;
+        if (bldgFilter !== "all") {
+          filtered = filtered.filter(
+            (e) => e.current_building_id === bldgFilter,
+          );
+        }
+        if (dueFilter === "has_dues") {
+          filtered = filtered.filter((e) => Number(e.due_amount || 0) > 0);
+        } else if (dueFilter === "no_dues") {
+          filtered = filtered.filter((e) => Number(e.due_amount || 0) <= 0);
+        }
+
+        let container = document.getElementById("admin-crm-table-body");
+        if (!container) return;
+
+        let html = "";
+        if (filtered.length > 0) {
+          filtered.forEach((emp) => {
+            let limit = Number(emp.credit_limit || 0);
+            let due = Number(emp.due_amount || 0);
+            let bldgName =
+              emp.locations && emp.locations.building_name
+                ? `${emp.locations.building_name} (${emp.locations.floor_no || "Ground"})`
+                : "Office Desk";
+            let cleanPhone = (emp.phone || "").replace(/\D/g, "");
+            let waLink = cleanPhone
+              ? `https://wa.me/91${cleanPhone}?text=` +
+                encodeURIComponent(`Hi ${emp.name}, greetings from Tastea! ☕`)
+              : "#";
+
+            html += `
+              <tr class="border-b hover:bg-slate-50">
+                <td class="p-3 font-extrabold text-slate-900">👤 ${emp.name}</td>
+                <td class="p-3 font-mono text-slate-600">📱 ${emp.phone || "N/A"}</td>
+                <td class="p-3 font-medium text-slate-700">🏢 ${bldgName}</td>
+                <td class="p-3 font-mono font-bold text-indigo-700">₹${limit}</td>
+                <td class="p-3 font-mono font-black text-rose-600">₹${due}</td>
+                <td class="p-3 flex items-center gap-2 flex-wrap">
+                  <button onclick="updateCustomerLimit('${emp.id}', ${limit})" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-3 py-1 rounded-xl font-bold text-xs cursor-pointer">Edit Limit</button>
+                  <button onclick="adminClearCustomerDue('${emp.id}', '${emp.name}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-3 py-1 rounded-xl font-bold text-xs cursor-pointer">Clear Dues ⚡</button>
+                  ${cleanPhone ? `<a href="${waLink}" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-xl font-bold text-xs shadow-sm"><i class="fa-brands fa-whatsapp"></i> Chat</a>` : ""}
+                </td>
+              </tr>
+            `;
+          });
+        } else {
+          html = `<tr><td colspan="6" class="p-6 text-center text-slate-400">No matching customer records found.</td></tr>`;
+        }
+        container.innerHTML = html;
+      };
+
+      window.updateCustomerLimit = async function (empId, currentLimit) {
+        let val = prompt("Enter new credit limit (₹):", currentLimit);
+        if (val === null) return;
+        let credit_limit = Number(val);
+        if (isNaN(credit_limit)) {
+          alert("Please enter a valid amount.");
+          return;
+        }
+        await supabaseClient
+          .from("employees")
+          .update({ credit_limit })
+          .eq("id", empId);
+        alert("✅ Credit limit updated successfully!");
+        loadCrmCustomers();
+      };
+
+      window.adminClearCustomerDue = async function (empId, empName) {
+        if (
+          !confirm(
+            `Are you sure you want to manually clear outstanding dues for ${empName}?`,
+          )
+        )
+          return;
+        let { error } = await supabaseClient
+          .from("employees")
+          .update({ due_amount: 0 })
+          .eq("id", empId);
+        if (error) {
+          alert("Error clearing dues: " + error.message);
+          return;
+        }
+        alert(`✅ Dues cleared manually for ${empName}!`);
+        loadCrmCustomers();
+        loadAdminDashboardData();
+      };
+
+      window.sendBulkDueReminders = async function () {
+        let { data: employees } = await supabaseClient
+          .from("employees")
+          .select("*")
+          .gt("due_amount", 0);
+        if (!employees || employees.length === 0) {
+          alert("No employees with outstanding dues found.");
+          return;
+        }
+        let count = employees.length;
+        if (
+          confirm(
+            `Ready to send WhatsApp reminders to ${count} employees with pending dues. Proceed?`,
+          )
+        ) {
+          employees.forEach((emp) => {
+            let message = `Hi ${emp.name}, this is a gentle reminder from Tastea regarding your outstanding snack credit due of ₹${emp.due_amount}. Please clear your dues at your earliest convenience. Thank you!`;
+            window.open(
+              `https://api.whatsapp.com/send?phone=91${emp.phone}&text=${encodeURIComponent(message)}`,
+              "_blank",
+            );
+          });
+        }
+      };
+
+      window.sendMarketingBroadcast = async function () {
+        let msg = document.getElementById("promo-msg-text").value.trim();
+        let { data: employees } = await supabaseClient
+          .from("employees")
+          .select("phone, name");
+        if (!employees || employees.length === 0) {
+          alert("No registered customer phone numbers found.");
+          return;
+        }
+        if (
+          confirm(
+            `Ready to broadcast promotional message to ${employees.length} customers via WhatsApp. Proceed?`,
+          )
+        ) {
+          employees.forEach((emp) => {
+            if (emp.phone) {
+              let personalizedMsg = `Hi ${emp.name}! ${msg}`;
+              window.open(
+                `https://api.whatsapp.com/send?phone=91${emp.phone}&text=${encodeURIComponent(personalizedMsg)}`,
+                "_blank",
+              );
+            }
+          });
+        }
+      };
+
+      window.downloadSlotWisePdfChallan = function () {
+        if (!allFetchedOrders || allFetchedOrders.length === 0) {
+          alert("No orders available for slot-wise challan PDF.");
+          return;
+        }
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(30, 27, 75);
+        doc.text("TASTEA FOOD & BEVERAGE", 14, 20);
+
+        doc.setFontSize(11);
+        doc.setTextColor(180, 83, 9);
+        doc.text("SLOT-WISE DELIVERY CHALLAN", 14, 27);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text(
+          "Generated: " +
+            new Date().toLocaleString() +
+            " | Delivery Time Slot-Wise",
+          14,
+          33,
+        );
+
+        doc.setLineWidth(0.5);
+        doc.setLineColor(217, 119, 6);
+        doc.line(14, 37, 196, 37);
+
+        let y = 46;
+        let groupedBySlot = {};
+        allFetchedOrders.forEach((ord) => {
+          let slotKey =
+            ord.locations && ord.locations.delivery_time
+              ? ord.locations.delivery_time
+              : "4:00 PM - 4:30 PM";
+          if (!groupedBySlot[slotKey]) groupedBySlot[slotKey] = [];
+          groupedBySlot[slotKey].push(ord);
+        });
+
+        Object.keys(groupedBySlot).forEach((slot) => {
+          if (y > 260) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(15, 23, 42);
+          doc.text(`DELIVERY TIME SLOT: ${slot}`, 14, y);
+          y += 6;
+
+          groupedBySlot[slot].forEach((ord, idx) => {
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
+            let bldg =
+              ord.locations && ord.locations.building_name
+                ? `${ord.locations.building_name} (${ord.locations.floor_no || "Ground"})`
+                : "Office Desk";
+            let empName = ord.employees ? ord.employees.name : "Employee";
+            let phone = ord.employees ? ord.employees.phone : "N/A";
+            let itemsStr = (ord.items_json || [])
+              .map((i) => `${i.name} (x${i.qty})`)
+              .join(", ");
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(51, 65, 85);
+            doc.text(
+              `${idx + 1}. [${bldg}] ${empName} (${phone}) -> ${itemsStr}`,
+              18,
+              y,
+            );
+            doc.text(`₹${ord.total_amount} (${ord.payment_mode})`, 165, y);
+            y += 6;
+          });
+          y += 4;
+        });
+
+        doc.save(
+          `Tastea_Slot_Challan_${new Date().toISOString().slice(0, 10)}.pdf`,
+        );
+        alert("✅ Slot-Wise Delivery Challan PDF generated successfully!");
+      };
+
+      window.generateProfessionalIntervalPdfReport = function () {
+        const startDate = document.getElementById("report-start-date").value;
+        const endDate = document.getElementById("report-end-date").value;
+        if (!startDate || !endDate) {
+          alert("Please select start and end dates!");
+          return;
+        }
+
+        let filtered = allFetchedOrders.filter((o) => {
+          let oDate = new Date(o.created_at).toISOString().split("T")[0];
+          return oDate >= startDate && oDate <= endDate;
+        });
+
+        if (filtered.length === 0) {
+          alert("No orders found within this date interval.");
+          return;
+        }
+
+        let totalRev = 0,
+          totalUPI = 0,
+          totalCredit = 0;
+        let itemBreakdown = {};
+        let buildingBreakdown = {};
+        let userBreakdown = {};
+
+        filtered.forEach((ord) => {
+          let amt = Number(ord.total_amount || 0);
+          totalRev += amt;
+          if (ord.payment_mode === "pay_now") totalUPI += amt;
+          else totalCredit += amt;
+
+          let bldgName =
+            ord.locations && ord.locations.building_name
+              ? `${ord.locations.building_name} (${ord.locations.floor_no || "Ground"})`
+              : "Office Desk";
+          buildingBreakdown[bldgName] =
+            (buildingBreakdown[bldgName] || 0) + amt;
+
+          let userName = ord.employees ? ord.employees.name : "Walk-in";
+          userBreakdown[userName] = (userBreakdown[userName] || 0) + amt;
+
+          if (ord.items_json) {
+            ord.items_json.forEach((i) => {
+              let iName = i.name || "Item";
+              let iQty = Number(i.qty || 1);
+              if (!itemBreakdown[iName])
+                itemBreakdown[iName] = { qty: 0, rev: 0 };
+              itemBreakdown[iName].qty += iQty;
+              itemBreakdown[iName].rev += Number(i.price || 0) * iQty;
+            });
+          }
+        });
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(30, 27, 75);
+        doc.text("TASTEA FOOD & BEVERAGE", 14, 20);
+
+        doc.setFontSize(11);
+        doc.setTextColor(180, 83, 9);
+        doc.text(
+          `PROFESSIONAL OPERATIONS REPORT (${startDate} to ${endDate})`,
+          14,
+          27,
+        );
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Generated: " + new Date().toLocaleString(), 14, 33);
+
+        doc.setLineWidth(0.5);
+        doc.setLineColor(217, 119, 6);
+        doc.line(14, 37, 196, 37);
+
+        let y = 46;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text("1. Financial Summary", 14, y);
+        y += 6;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(`• Total Revenue: ₹${totalRev}`, 18, y);
+        doc.text(`• UPI Collections (Pay Now): ₹${totalUPI}`, 110, y);
+        y += 6;
+        doc.text(`• Credit Dues (Pay Later): ₹${totalCredit}`, 18, y);
+        doc.text(`• Total Orders Processed: ${filtered.length}`, 110, y);
+        y += 12;
+
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.text("2. Item-Wise Sales Breakdown", 14, y);
+        y += 6;
+        doc.setFont("helvetica", "normal");
+        Object.keys(itemBreakdown).forEach((item) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`• ${item} (Qty: ${itemBreakdown[item].qty})`, 18, y);
+          doc.text(`₹${itemBreakdown[item].rev}`, 165, y);
+          y += 6;
+        });
+        y += 6;
+
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.text("3. Building-Wise Sales Breakdown", 14, y);
+        y += 6;
+        doc.setFont("helvetica", "normal");
+        Object.keys(buildingBreakdown).forEach((bldg) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`• ${bldg}`, 18, y);
+          doc.text(`₹${buildingBreakdown[bldg]}`, 165, y);
+          y += 6;
+        });
+        y += 6;
+
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.text("4. User/Employee-Wise Sales Breakdown", 14, y);
+        y += 6;
+        doc.setFont("helvetica", "normal");
+        Object.keys(userBreakdown).forEach((usr) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`• ${usr}`, 18, y);
+          doc.text(`₹${userBreakdown[usr]}`, 165, y);
+          y += 6;
+        });
+
+        doc.save(`Tastea_Professional_Report_${startDate}_to_${endDate}.pdf`);
+        alert(
+          "✅ Professional Entity-Wise PDF Report downloaded successfully!",
+        );
+      };
+
+      window.downloadPeakHourSlotReport = async function () {
+        let slotVolume = {};
+        allFetchedOrders.forEach((ord) => {
+          let slot =
+            ord.locations && ord.locations.delivery_time
+              ? ord.locations.delivery_time
+              : "Unassigned Slot";
+          if (!slotVolume[slot]) slotVolume[slot] = { orders: 0, revenue: 0 };
+          slotVolume[slot].orders += 1;
+          slotVolume[slot].revenue += Number(ord.total_amount || 0);
+        });
+
+        let csv = [["Delivery Time Slot", "Total Orders", "Total Revenue (₹)"]];
+        Object.keys(slotVolume).forEach((slot) => {
+          csv.push([slot, slotVolume[slot].orders, slotVolume[slot].revenue]);
+        });
+
+        exportCsvFile(csv, "Tastea_Peak_Slot_Analysis.csv");
+      };
+
+      window.downloadCreditAgingReport = async function () {
+        let { data: employees } = await supabaseClient
+          .from("employees")
+          .select("*, locations(building_name)");
+        if (!employees || employees.length === 0) {
+          alert("No customer data found.");
+          return;
+        }
+
+        let csv = [
+          [
+            "Customer Name",
+            "Phone",
+            "Building",
+            "Credit Limit (₹)",
+            "Outstanding Dues (₹)",
+          ],
+        ];
+        employees.forEach((emp) => {
+          if (Number(emp.due_amount || 0) > 0) {
+            csv.push([
+              emp.name,
+              emp.phone,
+              emp.locations?.building_name || "N/A",
+              emp.credit_limit || 0,
+              emp.due_amount || 0,
+            ]);
+          }
+        });
+
+        exportCsvFile(csv, "Tastea_Credit_Aging_Dues.csv");
+      };
+
+      window.downloadBuildingPenetrationReport = async function () {
+        let bldgStats = {};
+        allFetchedOrders.forEach((ord) => {
+          let bldg =
+            ord.locations && ord.locations.building_name
+              ? `${ord.locations.building_name} (${ord.locations.floor_no || "Ground"})`
+              : "Office Desk";
+          if (!bldgStats[bldg])
+            bldgStats[bldg] = { orders: 0, revenue: 0, uniqueUsers: new Set() };
+          bldgStats[bldg].orders += 1;
+          bldgStats[bldg].revenue += Number(ord.total_amount || 0);
+          if (ord.employee_id) bldgStats[bldg].uniqueUsers.add(ord.employee_id);
+        });
+
+        let csv = [
+          [
+            "Building / Location",
+            "Total Orders",
+            "Active Users",
+            "Total Revenue (₹)",
+          ],
+        ];
+        Object.keys(bldgStats).forEach((bldg) => {
+          csv.push([
+            bldg,
+            bldgStats[bldg].orders,
+            bldgStats[bldg].uniqueUsers.size,
+            bldgStats[bldg].revenue,
+          ]);
+        });
+
+        exportCsvFile(csv, "Tastea_Building_Adoption_Report.csv");
+      };
+
+      window.downloadQuotaUtilizationReport = async function () {
+        let csv = [
+          ["Category", "Max Quota", "Total Sold Today", "Remaining Slots"],
+        ];
+        let vegSold = Number(
+          document.getElementById("admin-veg-count")?.innerText || 0,
+        );
+        let nonVegSold = Number(
+          document.getElementById("admin-nonveg-count")?.innerText || 0,
+        );
+        csv.push(["Veg", vegLimit, vegSold, Math.max(0, vegLimit - vegSold)]);
+        csv.push([
+          "Non-Veg",
+          nonVegLimit,
+          nonVegSold,
+          Math.max(0, nonVegLimit - nonVegSold),
+        ]);
+
+        exportCsvFile(csv, "Tastea_Quota_Efficiency_Report.csv");
+      };
+
+      function exportCsvFile(csvArray, filename) {
+        let link = document.createElement("a");
+        link.href =
+          "data:text/csv;charset=utf-8," +
+          encodeURI(csvArray.map((e) => e.join(",")).join("\n"));
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert(`✅ ${filename} downloaded successfully!`);
+      }
+
+      window.addBillingItem = function () {
+        const name = document.getElementById("bill-item-name").value.trim();
+        const price = Number(
+          document.getElementById("bill-item-price").value || 0,
+        );
+        const qty = Number(document.getElementById("bill-item-qty").value || 1);
+        if (!name || price <= 0) {
+          alert("Enter valid item description and price.");
+          return;
+        }
+
+        billingCartItems.push({ name, price, qty });
+        document.getElementById("bill-item-name").value = "";
+        document.getElementById("bill-item-price").value = "";
+        document.getElementById("bill-item-qty").value = "1";
+        renderBillingTable();
+      };
+
+      window.removeBillingItem = function (index) {
+        billingCartItems.splice(index, 1);
+        renderBillingTable();
+      };
+
+      function renderBillingTable() {
+        let container = document.getElementById("billing-items-table");
+        if (billingCartItems.length === 0) {
+          container.innerHTML =
+            '<tr><td colspan="5" class="p-4 text-center text-slate-400">No items added yet.</td></tr>';
+          return;
+        }
+        let html = "";
+        billingCartItems.forEach((item, idx) => {
+          html += `<tr class="border-b">
+            <td class="p-3 font-bold text-slate-900">${item.name}</td>
+            <td class="p-3 text-right font-mono">₹${item.price}</td>
+            <td class="p-3 text-center font-mono">${item.qty}</td>
+            <td class="p-3 text-right font-mono font-black text-amber-600">₹${item.price * item.qty}</td>
+            <td class="p-3 text-center"><button onclick="removeBillingItem(${idx})" class="text-rose-600 font-bold">✕</button></td>
+          </tr>`;
+        });
+        container.innerHTML = html;
+      }
+
+      window.generateUserBulkBillPdf = function () {
+        const clientName = document
+          .getElementById("bill-client-name")
+          .value.trim();
+        const clientPhone = document
+          .getElementById("bill-client-phone")
+          .value.trim();
+        const clientAddress = document
+          .getElementById("bill-client-address")
+          .value.trim();
+
+        if (!clientName || billingCartItems.length === 0) {
+          alert("Please enter customer details and add at least one item.");
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(30, 27, 75);
+        doc.text("TASTEA FOOD & BEVERAGE", 14, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(180, 83, 9);
+        doc.text("OFFICIAL TAX INVOICE / BULK BILL", 14, 27);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("34, Kamarajar Street, Tirunelveli - Junction", 14, 33);
+        doc.text("FSSAI Lic: 22426584000044 | UPI: 9629511751@ybl", 14, 38);
+
+        doc.setLineWidth(0.5);
+        doc.setLineColor(217, 119, 6);
+        doc.line(14, 43, 196, 43);
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Billed To:", 14, 53);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(`Customer / Company: ${clientName}`, 14, 60);
+        doc.text(`Phone: ${clientPhone}`, 14, 66);
+        doc.text(`Address: ${clientAddress}`, 14, 72);
+        doc.text(`Date: ${new Date().toLocaleString()}`, 135, 60);
+
+        let y = 84;
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 8, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Item Description", 18, y + 5.5);
+        doc.text("Price (₹)", 120, y + 5.5);
+        doc.text("Qty", 150, y + 5.5);
+        doc.text("Total (₹)", 175, y + 5.5);
+
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(51, 65, 85);
+
+        let grandTotal = 0;
+        billingCartItems.forEach((item, idx) => {
+          let lineTotal = item.price * item.qty;
+          grandTotal += lineTotal;
+
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y, 182, 8, "F");
+          }
+
+          doc.text(item.name, 18, y + 5.5);
+          doc.text(item.price.toString(), 120, y + 5.5);
+          doc.text(item.qty.toString(), 150, y + 5.5);
+          doc.text(lineTotal.toString(), 175, y + 5.5);
+          y += 8;
+        });
+
+        y += 4;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Grand Total: ₹${grandTotal}`, 145, y + 6);
+
+        y += 25;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text(
+          "Thank you for your business! For queries contact 9629511751.",
+          14,
+          y,
+        );
+
+        doc.save(`Tastea_Invoice_${clientName.replace(/\s+/g, "_")}.pdf`);
+        alert("✅ Professional PDF Invoice generated successfully!");
+      };
+
+      window.archiveAndClearOrdersByCutoff = async function () {
+        const cutoffTime = document.getElementById(
+          "archive-cutoff-select",
+        ).value;
+        if (!cutoffTime) {
+          alert(
+            "Please select a building cutoff time to archive orders up to that limit!",
+          );
+          return;
+        }
+
+        if (
+          confirm(
+            `⚠️ Archive orders up to cutoff time [${cutoffTime}] and clear active live records?`,
+          )
+        ) {
+          let filteredToArchive = allFetchedOrders.filter((o) => {
+            let oTime = new Date(o.created_at).toTimeString().slice(0, 5);
+            return oTime <= cutoffTime;
+          });
+
+          if (filteredToArchive.length > 0) {
+            let csv = [
+              [
+                "Order ID",
+                "Date/Time",
+                "Customer ID",
+                "Building ID",
+                "Total Amount (₹)",
+                "Payment Mode",
+                "Delivery Status",
+              ],
+            ];
+            filteredToArchive.forEach((o) => {
+              csv.push([
+                o.id,
+                o.created_at,
+                o.employee_id,
+                o.location_id,
+                o.total_amount,
+                o.payment_mode,
+                o.is_delivered ? "Delivered" : "Preparing",
+              ]);
+            });
+            let todayStr = new Date().toISOString().slice(0, 10);
+            exportCsvFile(
+              csv,
+              `Tastea_Cutoff_${cutoffTime.replace(":", "")}_Archive_${todayStr}.csv`,
+            );
+          }
+
+          alert(
+            `✅ Cutoff session [${cutoffTime}] archived and cleared successfully!`,
+          );
+          window.location.reload();
+        }
+      };
+
+      window.downloadDateWiseStatement = async function () {
+        const picker = document.getElementById("statement-date-picker").value;
+        if (!picker) {
+          alert("Please select a date!");
+          return;
+        }
+        const { data: orders } = await supabaseClient
+          .from("orders")
+          .select(
+            "*, locations(building_name, floor_no), employees(name, phone)",
+          )
+          .order("id", { ascending: false });
+        if (!orders) return;
+        let filtered = orders.filter(
+          (o) =>
+            new Date(o.created_at).toDateString() ===
+            new Date(picker).toDateString(),
+        );
+        if (filtered.length === 0) {
+          alert("No orders found for this date.");
+          return;
+        }
+
+        let totalRev = 0,
+          totalUPI = 0,
+          totalCredit = 0;
+        let csv = [
+          [
+            "Order ID",
+            "Date/Time",
+            "Customer Name",
+            "Phone",
+            "Building",
+            "Items Ordered",
+            "Total Amount (₹)",
+            "Payment Mode",
+            "Delivery Status",
+          ],
+        ];
+        filtered.forEach((o) => {
+          let amt = Number(o.total_amount || 0);
+          totalRev += amt;
+          if (o.payment_mode === "pay_now") totalUPI += amt;
+          else totalCredit += amt;
+
+          csv.push([
+            o.id,
+            new Date(o.created_at).toLocaleString(),
+            o.employees?.name || "Walk-in",
+            o.employees?.phone || "N/A",
+            o.locations?.building_name || "Campus",
+            (o.items_json || []).map((i) => `${i.name} (x${i.qty})`).join("; "),
+            amt,
+            o.payment_mode,
+            o.is_delivered ? "Delivered" : "Preparing",
+          ]);
+        });
+        csv.push([]);
+        csv.push(["SUMMARY FOR DATE", picker]);
+        csv.push(["Total Revenue", totalRev]);
+        csv.push(["Total UPI Collections (Pay Now)", totalUPI]);
+        csv.push(["Total Credit Dues (Pay Later)", totalCredit]);
+
+        let link = document.createElement("a");
+        link.href =
+          "data:text/csv;charset=utf-8," +
+          encodeURI(csv.map((e) => e.join(",")).join("\n"));
+        link.download = `Tastea_Sales_Statement_${picker}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+    </script>
+  </body>
+</html>
