@@ -177,27 +177,28 @@
             </p>
           </div>
           <div
-            class="bg-gradient-to-br from-emerald-600 to-green-700 text-white p-4 rounded-3xl shadow-md space-y-1"
+            class="bg-gradient-to-br from-amber-600 to-yellow-700 text-white p-4 rounded-3xl shadow-md space-y-1"
           >
             <h4
-              class="text-[10px] text-emerald-100 font-black uppercase tracking-wider"
+              class="text-[10px] text-amber-100 font-black uppercase tracking-wider"
             >
-              🟢 Veg Sold
+              ☕ Beverages Sold
             </h4>
-            <p class="text-2xl font-black mt-1" id="admin-veg-count">0</p>
+            <p class="text-2xl font-black mt-1" id="admin-beverages-count">0</p>
           </div>
           <div
-            class="bg-gradient-to-br from-red-600 to-rose-700 text-white p-4 rounded-3xl shadow-md space-y-1"
+            class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-4 rounded-3xl shadow-md space-y-1"
           >
             <h4
-              class="text-[10px] text-rose-100 font-black uppercase tracking-wider"
+              class="text-[10px] text-blue-100 font-black uppercase tracking-wider"
             >
-              🔴 Non-Veg Sold
+              🍛 Food Sold
             </h4>
-            <p class="text-2xl font-black mt-1" id="admin-nonveg-count">0</p>
+            <p class="text-2xl font-black mt-1" id="admin-food-count">0</p>
           </div>
         </div>
 
+        <!-- CATEGORY SALES & SLOT QUOTAS -->
         <div
           class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4"
         >
@@ -205,40 +206,51 @@
             <h3
               class="font-black text-sm uppercase tracking-wider text-amber-400"
             >
-              📊 Global Veg & Non-Veg Slot Quotas
+              📊 Category Slot Quotas
             </h3>
-            <div class="flex items-center gap-2 text-xs">
-              <span class="text-slate-300 font-bold">Global Max Quotas:</span>
+            <div class="flex items-center gap-2 text-xs flex-wrap">
+              <span class="text-slate-300 font-bold">Limits:</span>
               <input
                 type="number"
                 id="veg-limit-input"
                 value="50"
                 onchange="saveCategoryLimits()"
-                class="w-16 bg-slate-800 text-emerald-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+                class="w-14 bg-slate-800 text-emerald-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+                title="Snacks Max"
               />
-              (Veg Max)
+              (Snacks)
               <input
                 type="number"
-                id="nonveg-limit-input"
+                id="bev-limit-input"
                 value="50"
                 onchange="saveCategoryLimits()"
-                class="w-16 bg-slate-800 text-rose-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+                class="w-14 bg-slate-800 text-amber-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+                title="Beverages Max"
               />
-              (Non-Veg Max)
+              (Bev)
+              <input
+                type="number"
+                id="food-limit-input"
+                value="50"
+                onchange="saveCategoryLimits()"
+                class="w-14 bg-slate-800 text-blue-400 border border-slate-700 p-2 rounded-xl font-black text-center"
+                title="Food Max"
+              />
+              (Food)
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div
               class="bg-white/10 border border-white/10 p-4 rounded-2xl space-y-2"
             >
               <div class="flex justify-between items-center text-xs">
                 <span class="font-black text-emerald-300 uppercase"
-                  >🟢 Veg Remaining Slots</span
+                  >🥨 Snacks Sold</span
                 >
                 <span
                   class="font-mono font-black text-white"
                   id="veg-slot-progress"
-                  >0 / 50 Available</span
+                  >0 / 50</span
                 >
               </div>
               <div
@@ -255,23 +267,139 @@
               class="bg-white/10 border border-white/10 p-4 rounded-2xl space-y-2"
             >
               <div class="flex justify-between items-center text-xs">
-                <span class="font-black text-rose-300 uppercase"
-                  >🔴 Non-Veg Remaining Slots</span
+                <span class="font-black text-amber-300 uppercase"
+                  >☕ Beverages Sold</span
                 >
                 <span
                   class="font-mono font-black text-white"
-                  id="nonveg-slot-progress"
-                  >0 / 50 Available</span
+                  id="bev-slot-progress"
+                  >0 / 50</span
                 >
               </div>
               <div
                 class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/10"
               >
                 <div
-                  id="nonveg-progress-bar"
-                  class="bg-gradient-to-r from-rose-500 to-pink-500 h-full transition-all duration-500"
+                  id="bev-progress-bar"
+                  class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full transition-all duration-500"
                   style="width: 0%"
                 ></div>
+              </div>
+            </div>
+            <div
+              class="bg-white/10 border border-white/10 p-4 rounded-2xl space-y-2"
+            >
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-black text-blue-300 uppercase"
+                  >🍛 Food Sold</span
+                >
+                <span
+                  class="font-mono font-black text-white"
+                  id="food-slot-progress"
+                  >0 / 50</span
+                >
+              </div>
+              <div
+                class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/10"
+              >
+                <div
+                  id="food-progress-bar"
+                  class="bg-gradient-to-r from-blue-500 to-indigo-400 h-full transition-all duration-500"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VEG VS NON-VEG PRODUCTION BREAKDOWN -->
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+        >
+          <div class="flex justify-between items-center">
+            <h3
+              class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
+            >
+              <i class="fa-solid fa-kitchen-set text-amber-600 text-base"></i>
+              Kitchen Production Summary (Veg vs Non-Veg)
+            </h3>
+            <span
+              class="text-[10px] bg-slate-100 text-slate-600 font-bold px-3 py-1 rounded-full"
+              >Real-Time Kitchen Feed</span
+            >
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <!-- SNACKS PRODUCTION -->
+            <div
+              class="bg-amber-50/60 border border-amber-200 p-4 rounded-2xl space-y-2"
+            >
+              <h4 class="font-black text-amber-900 uppercase text-xs">
+                🥨 Snacks Production
+              </h4>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-emerald-700">🟢 Veg:</span>
+                <span
+                  id="prod-snacks-veg"
+                  class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
+              </div>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-rose-700">🔴 Non-Veg:</span>
+                <span
+                  id="prod-snacks-nonveg"
+                  class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
+              </div>
+            </div>
+
+            <!-- FOOD PRODUCTION -->
+            <div
+              class="bg-blue-50/60 border border-blue-200 p-4 rounded-2xl space-y-2"
+            >
+              <h4 class="font-black text-blue-900 uppercase text-xs">
+                🍛 Food & Meals Production
+              </h4>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-emerald-700">🟢 Veg:</span>
+                <span
+                  id="prod-food-veg"
+                  class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
+              </div>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-rose-700">🔴 Non-Veg:</span>
+                <span
+                  id="prod-food-nonveg"
+                  class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
+              </div>
+            </div>
+
+            <!-- BEVERAGES / TEA PRODUCTION -->
+            <div
+              class="bg-orange-50/60 border border-orange-200 p-4 rounded-2xl space-y-2"
+            >
+              <h4 class="font-black text-orange-900 uppercase text-xs">
+                ☕ Beverages & Tea Flasks
+              </h4>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-emerald-700">🟢 Veg (Standard):</span>
+                <span id="prod-bev-veg" class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
+              </div>
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-rose-700">🔴 Non-Veg:</span>
+                <span
+                  id="prod-bev-nonveg"
+                  class="font-mono text-sm text-slate-900"
+                  >0</span
+                >
               </div>
             </div>
           </div>
@@ -284,15 +412,22 @@
             <h3
               class="font-black text-slate-900 text-sm uppercase tracking-wider"
             >
-              🏢 Building & Employee-Wise Live Report (LIFO - Newest First)
+              🏢 Building & Employee-Wise Live Report (LIFO)
             </h3>
             <div class="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onclick="markAllDeliveredToday()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3.5 py-2 rounded-xl text-xs cursor-pointer shadow-sm uppercase"
+              >
+                ✅ Mark All Delivered
+              </button>
               <input
                 type="text"
                 id="order-search-input"
                 placeholder="🔍 Search order..."
                 oninput="renderFilteredOrders()"
-                class="bg-slate-50 border p-2.5 rounded-xl text-xs font-bold w-44"
+                class="bg-slate-50 border p-2.5 rounded-xl text-xs font-bold w-40"
               />
               <select
                 id="building-filter-select"
@@ -369,7 +504,7 @@
               <input
                 type="text"
                 id="m-name"
-                placeholder="Crispy Chicken Roll"
+                placeholder="Crispy Samosa / Cold Coffee / Veg Meal"
                 class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
               />
             </div>
@@ -385,17 +520,33 @@
               />
             </div>
           </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 font-bold mb-1"
-              >Category Type *</label
-            >
-            <select
-              id="m-type"
-              class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
-            >
-              <option value="veg">🟢 Veg</option>
-              <option value="non_veg">🔴 Non-Veg</option>
-            </select>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Category Type *</label
+              >
+              <select
+                id="m-category"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              >
+                <option value="snacks">🥨 Snacks</option>
+                <option value="beverages">☕ Beverages</option>
+                <option value="food">🍛 Food & Meals</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                >Dietary Type *</label
+              >
+              <select
+                id="m-diet"
+                class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+              >
+                <option value="veg">🟢 Veg</option>
+                <option value="non_veg">🔴 Non-Veg</option>
+              </select>
+            </div>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-3 text-xs">
@@ -456,9 +607,9 @@
               <thead class="bg-slate-800 text-white uppercase text-[10px]">
                 <tr>
                   <th class="p-3">Item Name</th>
-                  <th class="p-3">Price & Type</th>
-                  <th class="p-3">Booked vs Max Slot</th>
-                  <th class="p-3">Assignment (Assign Today ★)</th>
+                  <th class="p-3">Price & Category</th>
+                  <th class="p-3">Dietary Type</th>
+                  <th class="p-3">Assignment Status</th>
                   <th class="p-3">Action</th>
                 </tr>
               </thead>
@@ -840,18 +991,25 @@
             <h4
               class="font-black text-slate-900 text-xs uppercase tracking-wider"
             >
-              Item Details
+              Daily Item Delivery Details (Weekly Invoicing)
             </h4>
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
-              <div class="sm:col-span-6">
+              <div class="sm:col-span-4">
                 <input
                   type="text"
                   id="bill-item-name"
-                  placeholder="Item Name (e.g. Tea Flask & Snacks)"
+                  placeholder="Item (e.g. Snack Box)"
                   class="w-full bg-white border p-2.5 rounded-xl font-bold"
                 />
               </div>
               <div class="sm:col-span-3">
+                <input
+                  type="date"
+                  id="bill-item-date"
+                  class="w-full bg-white border p-2.5 rounded-xl font-bold text-slate-700"
+                />
+              </div>
+              <div class="sm:col-span-2">
                 <input
                   type="number"
                   id="bill-item-price"
@@ -874,7 +1032,7 @@
               onclick="addBillingItem()"
               class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer shadow-sm"
             >
-              + Add Item to Bill
+              + Add Daily Item to Bill
             </button>
           </div>
 
@@ -883,6 +1041,7 @@
               <thead class="bg-slate-900 text-white uppercase text-[10px]">
                 <tr>
                   <th class="p-3">Item Description</th>
+                  <th class="p-3">Delivery Date</th>
                   <th class="p-3 text-right">Price (₹)</th>
                   <th class="p-3 text-center">Qty</th>
                   <th class="p-3 text-right">Total (₹)</th>
@@ -894,7 +1053,7 @@
                 class="bg-white divide-y divide-slate-100"
               >
                 <tr>
-                  <td colspan="5" class="p-4 text-center text-slate-400">
+                  <td colspan="6" class="p-4 text-center text-slate-400">
                     No items added yet.
                   </td>
                 </tr>
@@ -905,12 +1064,45 @@
           <div class="pt-2 flex justify-end">
             <button
               type="button"
-              onclick="generateUserBulkBillPdf()"
+              onclick="saveAndGenerateInvoice()"
               class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3.5 px-8 rounded-2xl text-xs cursor-pointer shadow-lg uppercase tracking-wider flex items-center gap-2"
             >
-              <i class="fa-solid fa-file-invoice-dollar text-base"></i> Download
-              Professional PDF Bill 📄
+              <i class="fa-solid fa-file-invoice-dollar text-base"></i> Save &
+              Download Professional PDF Bill 📄
             </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4 max-w-3xl mx-auto"
+        >
+          <h3
+            class="font-black text-slate-900 text-sm uppercase tracking-wider"
+          >
+            📂 Archived Invoices & Future Reference
+          </h3>
+          <div class="overflow-x-auto rounded-2xl border">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-900 text-white uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Invoice Date</th>
+                  <th class="p-3">Client / Company</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Grand Total</th>
+                  <th class="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody
+                id="archived-invoices-list"
+                class="bg-white divide-y divide-slate-100"
+              >
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-400">
+                    Loading archives...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -925,31 +1117,70 @@
               class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
             >
               <i class="fa-solid fa-bullhorn text-amber-600 text-base"></i>
-              WhatsApp Promotional Broadcast
+              Professional WhatsApp Campaign Hub
             </h3>
             <p class="text-xs text-slate-500 font-medium">
-              Broadcast daily specials, combo offers, and menu updates directly
-              to registered office employees.
+              Create targeted promotional broadcasts with pre-built professional
+              templates to drive instant lunch and high-tea sales.
             </p>
-            <div class="space-y-3 pt-2 text-xs">
+
+            <div class="space-y-3 pt-1 text-xs">
               <div>
                 <label class="block text-[10px] text-slate-500 font-bold mb-1"
-                  >Campaign Message Template</label
+                  >Select Campaign Template</label
+                >
+                <select
+                  id="campaign-template-select"
+                  onchange="applyCampaignTemplate()"
+                  class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+                >
+                  <option value="high_tea">
+                    ☕ High-Tea Flask & Snack Combo (Afternoon Peak)
+                  </option>
+                  <option value="breakfast">
+                    🥐 Morning Filter Coffee & Breakfast Special
+                  </option>
+                  <option value="party">
+                    🎉 Office Party & Celebration Catering Offer
+                  </option>
+                  <option value="custom">✍️ Custom Message</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                  >Target Audience Segment</label
+                >
+                <select
+                  id="campaign-audience-select"
+                  class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+                >
+                  <option value="all">👥 All Registered Employees</option>
+                  <option value="has_dues">
+                    ⚠️ Active Credit Users with Dues
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] text-slate-500 font-bold mb-1"
+                  >Live Broadcast Message Preview</label
                 >
                 <textarea
                   id="promo-msg-text"
-                  rows="3"
-                  class="w-full bg-slate-50 border p-3 rounded-2xl font-bold"
+                  rows="4"
+                  class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-800"
                 >
-Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo at ₹12 only. Scan your desk QR to order now! ☕🎉</textarea
+Hi [Name]! ☕ Enjoy Tastea's special Evening Tea Flask & Crispy Snack combo at ₹12 only today. Scan your desk QR or open your portal to order now: https://tasteasnacks.in/index.html 🚀</textarea
                 >
               </div>
+
               <button
-                onclick="sendMarketingBroadcast()"
+                onclick="sendTargetedMarketingBroadcast()"
                 class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
-                <i class="fa-brands fa-whatsapp text-base"></i> Send Promotional
-                WhatsApp Blast 🚀
+                <i class="fa-brands fa-whatsapp text-base"></i> Launch Targeted
+                WhatsApp Campaign 🚀
               </button>
             </div>
           </div>
@@ -987,45 +1218,51 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
       <div id="tab-reports" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
-            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/85 space-y-4"
           >
             <h3
               class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
             >
               <i class="fa-solid fa-calendar-days text-amber-600 text-base"></i>
-              Date-Wise Sales & Collection Statement
+              Daily Sales Statement (PDF/CSV)
             </h3>
             <p class="text-xs text-slate-500 font-medium">
-              Generate and download structured date-wise reports of sales
-              revenue and UPI collections.
+              Generate structured date-wise reports of sales revenue and
+              collections.
             </p>
-            <div class="flex items-center gap-3 pt-2">
+            <div class="flex items-center gap-3 pt-2 flex-wrap">
               <input
                 type="date"
                 id="statement-date-picker"
                 class="bg-slate-50 border p-3 rounded-2xl text-xs font-bold"
               />
               <button
-                onclick="downloadDateWiseStatement()"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-2xl text-xs cursor-pointer shadow-md"
+                onclick="downloadDateWisePdfStatement()"
+                class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-3 rounded-2xl text-xs cursor-pointer shadow-md"
               >
-                📥 Download Report CSV
+                📥 Daily PDF Statement
+              </button>
+              <button
+                onclick="downloadDateWiseStatement()"
+                class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-3 rounded-2xl text-xs cursor-pointer"
+              >
+                📥 CSV
               </button>
             </div>
           </div>
 
           <div
-            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+            class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/85 space-y-4"
           >
             <h3
               class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
             >
               <i class="fa-solid fa-file-pdf text-rose-600 text-base"></i>
-              Professional Entity-Wise PDF Report
+              Executive Business Analysis PDF
             </h3>
             <p class="text-xs text-slate-500 font-medium">
-              Generate custom date-interval reports detailing item-wise,
-              building-wise, and user-wise sales & collection.
+              Generate deep date-interval analytics detailing revenue share,
+              item performance, and totals.
             </p>
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div>
@@ -1052,23 +1289,23 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
             <div class="pt-2">
               <button
                 onclick="generateProfessionalIntervalPdfReport()"
-                class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+                class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black px-4 py-3 rounded-2xl text-xs shadow-md cursor-pointer flex items-center justify-center gap-1.5 uppercase"
               >
-                <i class="fa-solid fa-file-arrow-down"></i> Download Interval
-                PDF Report
+                <i class="fa-solid fa-file-arrow-down"></i> Download Business
+                PDF Report 📄
               </button>
             </div>
           </div>
         </div>
 
         <div
-          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/80 space-y-4"
+          class="bg-white p-6 rounded-3xl shadow-md border border-slate-200/85 space-y-4"
         >
           <h3
             class="font-black text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2"
           >
             <i class="fa-solid fa-chart-line text-indigo-600 text-base"></i>
-            Advanced Business Operation Success Reports
+            Advanced Operations & Business Intelligence PDFs
           </h3>
           <p class="text-xs text-slate-500 font-medium">
             Download specialized analytics reports to optimize delivery slots,
@@ -1078,28 +1315,28 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2"
           >
             <button
-              onclick="downloadPeakHourSlotReport()"
+              onclick="downloadPeakHourSlotReportPdf()"
               class="bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
             >
-              <i class="fa-solid fa-clock"></i> Peak Slot Analysis CSV
+              <i class="fa-solid fa-clock"></i> Peak Slot Analysis PDF
             </button>
             <button
-              onclick="downloadCreditAgingReport()"
+              onclick="downloadCreditAgingReportPdf()"
               class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
             >
-              <i class="fa-solid fa-file-invoice-dollar"></i> Credit Aging CSV
+              <i class="fa-solid fa-file-invoice-dollar"></i> Credit Aging PDF
             </button>
             <button
-              onclick="downloadBuildingPenetrationReport()"
+              onclick="downloadBuildingPenetrationReportPdf()"
               class="bg-teal-600 hover:bg-teal-700 text-white font-bold p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
             >
-              <i class="fa-solid fa-building"></i> Building Adoption CSV
+              <i class="fa-solid fa-building"></i> Building Adoption PDF
             </button>
             <button
-              onclick="downloadQuotaUtilizationReport()"
+              onclick="downloadQuotaUtilizationReportPdf()"
               class="bg-amber-600 hover:bg-amber-700 text-slate-950 font-black p-3.5 rounded-2xl text-xs cursor-pointer shadow-sm flex items-center justify-center gap-2"
             >
-              <i class="fa-solid fa-pie-chart"></i> Quota Efficiency CSV
+              <i class="fa-solid fa-pie-chart"></i> Quota Efficiency PDF
             </button>
           </div>
         </div>
@@ -1175,6 +1412,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
 
     <script>
       let currentBuildingDeliveryCharge = 0;
+
       window.switchTab = function (tabName) {
         [
           "dashboard",
@@ -1212,10 +1450,12 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
       let allMenuItems = [];
       let allFetchedOrders = [];
       let lastKnownCustomerCount = 0;
-      let vegLimit = 50;
-      let nonVegLimit = 50;
+      let snackLimit = 50;
+      let bevLimit = 50;
+      let foodLimit = 50;
       let itemBookedCounts = {};
       let billingCartItems = [];
+      let allArchivedInvoices = [];
 
       function formatTimeTo12Hour(timeStr) {
         if (!timeStr) return "N/A";
@@ -1229,6 +1469,23 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         return `${hours < 10 ? "0" + hours : hours}:${minutes} ${ampm}`;
       }
 
+      function formatDateToDDMMYY(dateInput) {
+        if (!dateInput) return "";
+        let d = new Date(dateInput);
+        if (isNaN(d.getTime())) {
+          let parts = dateInput.split("-");
+          if (parts.length === 3) {
+            let yy = parts[0].slice(-2);
+            return `${parts[2]}/${parts[1]}/${yy}`;
+          }
+          return dateInput;
+        }
+        let day = String(d.getDate()).padStart(2, "0");
+        let month = String(d.getMonth() + 1).padStart(2, "0");
+        let year = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${year}`;
+      }
+
       async function initAdmin() {
         try {
           loadCategoryLimits();
@@ -1236,6 +1493,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           await loadMenuInventory();
           await loadCrmCustomers();
           await loadAdminDashboardData();
+          await loadArchivedInvoices();
 
           const datePicker = document.getElementById("statement-date-picker");
           if (datePicker) datePicker.valueAsDate = new Date();
@@ -1244,10 +1502,25 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           document.getElementById("report-start-date").value = todayStr;
           document.getElementById("report-end-date").value = todayStr;
 
-          // Mandatory auto sound test on initialization to verify speakers
-          setTimeout(() => {
-            playNotificationSound();
-          }, 800);
+          const itemDateInput = document.getElementById("bill-item-date");
+          if (itemDateInput) itemDateInput.value = todayStr;
+
+          document.addEventListener(
+            "click",
+            function () {
+              const audio = document.getElementById("notification-audio");
+              if (audio) {
+                audio
+                  .play()
+                  .then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                  })
+                  .catch(() => {});
+              }
+            },
+            { once: true },
+          );
 
           setInterval(() => {
             loadAdminDashboardData();
@@ -1302,25 +1575,33 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
       }
 
       window.saveCategoryLimits = function () {
-        vegLimit = Number(
+        snackLimit = Number(
           document.getElementById("veg-limit-input").value || 50,
         );
-        nonVegLimit = Number(
-          document.getElementById("nonveg-limit-input").value || 50,
+        bevLimit = Number(
+          document.getElementById("bev-limit-input").value || 50,
         );
-        localStorage.setItem("tastea_veg_limit", vegLimit);
-        localStorage.setItem("tastea_nonveg_limit", nonVegLimit);
+        foodLimit = Number(
+          document.getElementById("food-limit-input").value || 50,
+        );
+        localStorage.setItem("tastea_snack_limit", snackLimit);
+        localStorage.setItem("tastea_bev_limit", bevLimit);
+        localStorage.setItem("tastea_food_limit", foodLimit);
         loadAdminDashboardData();
       };
 
       function loadCategoryLimits() {
-        if (localStorage.getItem("tastea_veg_limit")) {
-          vegLimit = Number(localStorage.getItem("tastea_veg_limit"));
-          document.getElementById("veg-limit-input").value = vegLimit;
+        if (localStorage.getItem("tastea_snack_limit")) {
+          snackLimit = Number(localStorage.getItem("tastea_snack_limit"));
+          document.getElementById("veg-limit-input").value = snackLimit;
         }
-        if (localStorage.getItem("tastea_nonveg_limit")) {
-          nonVegLimit = Number(localStorage.getItem("tastea_nonveg_limit"));
-          document.getElementById("nonveg-limit-input").value = nonVegLimit;
+        if (localStorage.getItem("tastea_bev_limit")) {
+          bevLimit = Number(localStorage.getItem("tastea_bev_limit"));
+          document.getElementById("bev-limit-input").value = bevLimit;
+        }
+        if (localStorage.getItem("tastea_food_limit")) {
+          foodLimit = Number(localStorage.getItem("tastea_food_limit"));
+          document.getElementById("food-limit-input").value = foodLimit;
         }
       }
 
@@ -1351,7 +1632,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
                 {
                   name: row.name || row.ItemName || "Item",
                   price: Number(row.price || row.Price || 30),
-                  type: (row.type || "veg").toLowerCase(),
+                  type: (row.category || row.type || "snacks").toLowerCase(),
                   is_todays_special: false,
                 },
               ]);
@@ -1371,18 +1652,24 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         let html = "";
         allMenuItems.forEach(function (m) {
           let bookedQty = itemBookedCounts[m.name.trim().toLowerCase()] || 0;
-          let maxLimit =
-            m.type === "non_veg" || m.type === "non-veg"
-              ? nonVegLimit
-              : vegLimit;
           let slotBadge = m.is_todays_special
-            ? `<span class="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">${bookedQty} / ${maxLimit} Booked</span>`
+            ? `<span class="font-mono font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">${bookedQty} Booked</span>`
             : `<span class="text-slate-400 italic">Not Assigned</span>`;
           let statusBtn = m.is_todays_special
             ? `<button onclick="toggleTodayAssignment('${m.id}', false)" class="bg-rose-100 text-rose-800 font-bold px-2.5 py-1.5 rounded text-xs">Unassign</button>`
             : `<button onclick="toggleTodayAssignment('${m.id}', true)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-1.5 rounded text-xs shadow-sm">Assign Today ★</button>`;
 
-          html += `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-extrabold text-slate-900">${m.name}</td><td class="p-3 font-medium">₹${m.price} (${m.type})</td><td class="p-3">${slotBadge}</td><td class="p-3">${statusBtn}</td><td class="p-3"><button onclick="deleteMenu('${m.id}')" class="text-rose-600 font-bold">Del</button></td></tr>`;
+          let dietBadge = (m.type || "").toLowerCase().includes("non")
+            ? '<span class="text-rose-600 font-bold">Non-Veg</span>'
+            : '<span class="text-emerald-600 font-bold">Veg</span>';
+
+          html += `<tr class="border-b hover:bg-slate-50">
+                    <td class="p-3 font-extrabold text-slate-900">${m.name}</td>
+                    <td class="p-3 font-medium">₹${m.price} (${m.type || "snacks"})</td>
+                    <td class="p-3">${dietBadge}</td>
+                    <td class="p-3">${slotBadge}</td>
+                    <td class="p-3 flex gap-2 items-center">${statusBtn} <button onclick="deleteMenu('${m.id}')" class="text-rose-600 font-bold">Del</button></td>
+                   </tr>`;
         });
         document.getElementById("admin-menu-list").innerHTML =
           html ||
@@ -1400,22 +1687,108 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
       window.saveMenuItem = async function () {
         const name = document.getElementById("m-name").value.trim();
         const price = Number(document.getElementById("m-price").value || 0);
-        const type = document.getElementById("m-type").value;
+        const category = document.getElementById("m-category").value; // 'snacks', 'beverages', or 'food'
+        const diet = document.getElementById("m-diet").value; // 'veg' or 'non_veg'
         const image_url = document.getElementById("m-image").value.trim();
-        if (!name || price <= 0) return;
-        await supabaseClient
-          .from("menu_items")
-          .insert([{ name, price, type, image_url, is_todays_special: false }]);
+
+        if (!name || price <= 0) {
+          alert("Please enter a valid item name and price.");
+          return;
+        }
+
+        // Format name to include dietary tag so it passes table constraints cleanly
+        const formattedName =
+          diet === "non_veg" ? `${name} (Non-Veg)` : `${name} (Veg)`;
+
+        const { error } = await supabaseClient.from("menu_items").insert([
+          {
+            name: formattedName,
+            price: price,
+            type: category, // Matches standard allowed constraint values
+            image_url: image_url,
+            is_todays_special: false,
+          },
+        ]);
+
+        if (error) {
+          alert("Error saving item: " + error.message);
+          return;
+        }
+
         document.getElementById("m-name").value = "";
         document.getElementById("m-price").value = "";
         document.getElementById("m-image").value = "";
         loadMenuInventory();
+        alert("✅ Menu item saved successfully!");
       };
 
       window.deleteMenu = async function (id) {
         if (!confirm("Delete item?")) return;
         await supabaseClient.from("menu_items").delete().eq("id", id);
         loadMenuInventory();
+      };
+
+      const campaignTemplates = {
+        high_tea:
+          "Hi [Name]! ☕ Enjoy Tastea's special Evening Tea Flask & Crispy Snack combo at ₹12 only today. Scan your desk QR or open your portal to order now: https://tasteasnacks.in/index.html 🚀",
+        breakfast:
+          "Good morning [Name]! 🥐 Start your workday strong with piping hot filter coffee and fresh breakfast boxes delivered right to your desk. Order now: https://tasteasnacks.in/index.html ⚡",
+        party:
+          "Hi [Name]! 🎉 Planning an office birthday or team celebration? Get customized snack boxes and tea flasks delivered by Tastea. Enquire now on WhatsApp! 🥳",
+        custom:
+          "Hi [Name]! Check out today's special menu at Tastea SnackPass: https://tasteasnacks.in/index.html 🌟",
+      };
+
+      window.applyCampaignTemplate = function () {
+        const type = document.getElementById("campaign-template-select").value;
+        const textAreas = document.getElementById("promo-msg-text");
+        if (campaignTemplates[type]) {
+          textAreas.value = campaignTemplates[type];
+        }
+      };
+
+      window.sendTargetedMarketingBroadcast = async function () {
+        let template = document.getElementById("promo-msg-text").value.trim();
+        let audience = document.getElementById(
+          "campaign-audience-select",
+        ).value;
+
+        let query = supabaseClient
+          .from("employees")
+          .select("phone, name, due_amount");
+        if (audience === "has_dues") {
+          query = query.gt("due_amount", 0);
+        }
+
+        let { data: employees } = await query;
+        if (!employees || employees.length === 0) {
+          alert("No customer records found matching this segment.");
+          return;
+        }
+
+        if (
+          confirm(
+            `Ready to launch professional WhatsApp campaign to ${employees.length} targeted contacts. Proceed?`,
+          )
+        ) {
+          let successCount = 0;
+          employees.forEach((emp) => {
+            if (emp.phone) {
+              let personalizedMsg = template.replace(
+                "[Name]",
+                emp.name || "Customer",
+              );
+              window.open(
+                `https://api.whatsapp.com/send?phone=91${emp.phone}&text=${encodeURIComponent(personalizedMsg)}`,
+                "_blank",
+              );
+              successCount++;
+            }
+          });
+          alert(
+            `✅ Successfully triggered WhatsApp campaign for ${successCount} contacts!`,
+          );
+        }
       };
 
       async function loadBuildingsForAdmin() {
@@ -1627,13 +2000,20 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           .select(
             "*, locations(building_name, floor_no), employees(name, phone)",
           )
-          .order("id", { ascending: false }); // LIFO
+          .order("created_at", { ascending: false }); // LIFO - Newest First
         allFetchedOrders = orders || [];
         let totalSales = 0,
           totalCollections = 0,
           totalDues = 0,
-          totalVeg = 0,
-          totalNonVeg = 0;
+          totalSnacks = 0,
+          totalBev = 0,
+          totalFood = 0;
+        let snacksVeg = 0,
+          snacksNonVeg = 0;
+        let foodVeg = 0,
+          foodNonVeg = 0;
+        let bevVeg = 0,
+          bevNonVeg = 0;
         itemBookedCounts = {};
 
         allFetchedOrders.forEach((ord) => {
@@ -1645,14 +2025,43 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
             ord.items_json.forEach((i) => {
               let qty = Number(i.qty || 1);
               let key = (i.name || "").trim().toLowerCase();
+              let itemType = (i.type || "").trim().toLowerCase();
+
               itemBookedCounts[key] = (itemBookedCounts[key] || 0) + qty;
-              if (
+
+              let isNonVeg =
+                itemType.includes("non") ||
                 key.includes("chicken") ||
                 key.includes("mutton") ||
-                key.includes("egg")
-              )
-                totalNonVeg += qty;
-              else totalVeg += qty;
+                key.includes("egg");
+
+              if (
+                key.includes("tea") ||
+                key.includes("coffee") ||
+                key.includes("flask") ||
+                key.includes("beverage") ||
+                key.includes("juice") ||
+                key.includes("milk")
+              ) {
+                totalBev += qty;
+                if (isNonVeg) bevNonVeg += qty;
+                else bevVeg += qty;
+              } else if (
+                key.includes("meal") ||
+                key.includes("rice") ||
+                key.includes("biryani") ||
+                key.includes("lunch") ||
+                key.includes("dinner") ||
+                key.includes("food")
+              ) {
+                totalFood += qty;
+                if (isNonVeg) foodNonVeg += qty;
+                else foodVeg += qty;
+              } else {
+                totalSnacks += qty;
+                if (isNonVeg) snacksNonVeg += qty;
+                else snacksVeg += qty;
+              }
             });
           }
         });
@@ -1670,19 +2079,35 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         document.getElementById("admin-total-dues").innerText = "₹" + totalDues;
         document.getElementById("admin-realtime-orders-count").innerText =
           allFetchedOrders.length;
-        document.getElementById("admin-veg-count").innerText = totalVeg;
-        document.getElementById("admin-nonveg-count").innerText = totalNonVeg;
+        document.getElementById("admin-beverages-count").innerText = totalBev;
+        document.getElementById("admin-food-count").innerText = totalFood;
 
-        let vegRem = Math.max(0, vegLimit - totalVeg);
-        let nonVegRem = Math.max(0, nonVegLimit - totalNonVeg);
+        // Update Production Counts UI Elements
+        document.getElementById("prod-snacks-veg").innerText = snacksVeg;
+        document.getElementById("prod-snacks-nonveg").innerText = snacksNonVeg;
+        document.getElementById("prod-food-veg").innerText = foodVeg;
+        document.getElementById("prod-food-nonveg").innerText = foodNonVeg;
+        document.getElementById("prod-bev-veg").innerText = bevVeg;
+        document.getElementById("prod-bev-nonveg").innerText = bevNonVeg;
+
+        let snackRem = Math.max(0, snackLimit - totalSnacks);
+        let bevRem = Math.max(0, bevLimit - totalBev);
+        let foodRem = Math.max(0, foodLimit - totalFood);
+
         document.getElementById("veg-slot-progress").innerText =
-          `${vegRem} Left (${totalVeg} Sold / ${vegLimit} Max)`;
+          `${totalSnacks} / ${snackLimit}`;
         document.getElementById("veg-progress-bar").style.width =
-          Math.min(100, Math.round((totalVeg / vegLimit) * 100)) + "%";
-        document.getElementById("nonveg-slot-progress").innerText =
-          `${nonVegRem} Left (${totalNonVeg} Sold / ${nonVegLimit} Max)`;
-        document.getElementById("nonveg-progress-bar").style.width =
-          Math.min(100, Math.round((totalNonVeg / nonVegLimit) * 100)) + "%";
+          Math.min(100, Math.round((totalSnacks / snackLimit) * 100)) + "%";
+
+        document.getElementById("bev-slot-progress").innerText =
+          `${totalBev} / ${bevLimit}`;
+        document.getElementById("bev-progress-bar").style.width =
+          Math.min(100, Math.round((totalBev / bevLimit) * 100)) + "%";
+
+        document.getElementById("food-slot-progress").innerText =
+          `${totalFood} / ${foodLimit}`;
+        document.getElementById("food-progress-bar").style.width =
+          Math.min(100, Math.round((totalFood / foodLimit) * 100)) + "%";
 
         renderFilteredOrders();
         loadMenuInventory();
@@ -1916,32 +2341,6 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         }
       };
 
-      window.sendMarketingBroadcast = async function () {
-        let msg = document.getElementById("promo-msg-text").value.trim();
-        let { data: employees } = await supabaseClient
-          .from("employees")
-          .select("phone, name");
-        if (!employees || employees.length === 0) {
-          alert("No registered customer phone numbers found.");
-          return;
-        }
-        if (
-          confirm(
-            `Ready to broadcast promotional message to ${employees.length} customers via WhatsApp. Proceed?`,
-          )
-        ) {
-          employees.forEach((emp) => {
-            if (emp.phone) {
-              let personalizedMsg = `Hi ${emp.name}! ${msg}`;
-              window.open(
-                `https://api.whatsapp.com/send?phone=91${emp.phone}&text=${encodeURIComponent(personalizedMsg)}`,
-                "_blank",
-              );
-            }
-          });
-        }
-      };
-
       window.downloadSlotWisePdfChallan = function () {
         if (!allFetchedOrders || allFetchedOrders.length === 0) {
           alert("No orders available for slot-wise challan PDF.");
@@ -1964,14 +2363,14 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         doc.setTextColor(100, 116, 139);
         doc.text(
           "Generated: " +
-            new Date().toLocaleString() +
+            formatDateToDDMMYY(new Date()) +
             " | Delivery Time Slot-Wise",
           14,
           33,
         );
 
         doc.setLineWidth(0.5);
-        doc.setLineColor(217, 119, 6);
+        doc.setDrawColor(217, 119, 6);
         doc.line(14, 37, 196, 37);
 
         let y = 46;
@@ -2019,14 +2418,14 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
               18,
               y,
             );
-            doc.text(`₹${ord.total_amount} (${ord.payment_mode})`, 165, y);
+            doc.text(`Rs.${ord.total_amount} (${ord.payment_mode})`, 165, y);
             y += 6;
           });
           y += 4;
         });
 
         doc.save(
-          `Tastea_Slot_Challan_${new Date().toISOString().slice(0, 10)}.pdf`,
+          `Tastea_Slot_Challan_${formatDateToDDMMYY(new Date()).replace(/\//g, "-")}.pdf`,
         );
         alert("✅ Slot-Wise Delivery Challan PDF generated successfully!");
       };
@@ -2054,7 +2453,6 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           totalCredit = 0;
         let itemBreakdown = {};
         let buildingBreakdown = {};
-        let userBreakdown = {};
 
         filtered.forEach((ord) => {
           let amt = Number(ord.total_amount || 0);
@@ -2068,9 +2466,6 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
               : "Office Desk";
           buildingBreakdown[bldgName] =
             (buildingBreakdown[bldgName] || 0) + amt;
-
-          let userName = ord.employees ? ord.employees.name : "Walk-in";
-          userBreakdown[userName] = (userBreakdown[userName] || 0) + amt;
 
           if (ord.items_json) {
             ord.items_json.forEach((i) => {
@@ -2087,108 +2482,127 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(18);
-        doc.setTextColor(30, 27, 75);
-        doc.text("TASTEA FOOD & BEVERAGE", 14, 20);
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 36, "F");
 
-        doc.setFontSize(11);
-        doc.setTextColor(180, 83, 9);
-        doc.text(
-          `PROFESSIONAL OPERATIONS REPORT (${startDate} to ${endDate})`,
-          14,
-          27,
-        );
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.setTextColor(245, 158, 11);
+        doc.text("TASTEA FOOD & BEVERAGE", 14, 15);
+
+        doc.setFontSize(10);
+        doc.setTextColor(226, 232, 240);
+        doc.text("Executive Business Analysis Report", 14, 23);
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(100, 116, 139);
-        doc.text("Generated: " + new Date().toLocaleString(), 14, 33);
-
-        doc.setLineWidth(0.5);
-        doc.setLineColor(217, 119, 6);
-        doc.line(14, 37, 196, 37);
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          `Period: ${formatDateToDDMMYY(startDate)} to ${formatDateToDDMMYY(endDate)} | Generated: ${formatDateToDDMMYY(new Date())}`,
+          14,
+          30,
+        );
 
         let y = 46;
+
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(203, 213, 225);
+        doc.roundedRect(14, y, 56, 20, 3, 3, "FD");
+        doc.roundedRect(74, y, 56, 20, 3, 3, "FD");
+        doc.roundedRect(134, y, 62, 20, 3, 3, "FD");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text("TOTAL REVENUE", 18, y + 6);
+        doc.text("UPI (PAY NOW)", 78, y + 6);
+        doc.text("CREDIT (PAY LATER)", 138, y + 6);
+
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Rs. ${totalRev}`, 18, y + 15);
+        doc.text(`Rs. ${totalUPI}`, 78, y + 15);
+        doc.text(`Rs. ${totalCredit}`, 138, y + 15);
+
+        y += 28;
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.setTextColor(15, 23, 42);
-        doc.text("1. Financial Summary", 14, y);
+        doc.text("1. Item-Wise Sales Performance", 14, y);
         y += 6;
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.text(`• Total Revenue: ₹${totalRev}`, 18, y);
-        doc.text(`• UPI Collections (Pay Now): ₹${totalUPI}`, 110, y);
-        y += 6;
-        doc.text(`• Credit Dues (Pay Later): ₹${totalCredit}`, 18, y);
-        doc.text(`• Total Orders Processed: ${filtered.length}`, 110, y);
-        y += 12;
-
-        if (y > 250) {
-          doc.addPage();
-          y = 20;
-        }
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
         doc.setFont("helvetica", "bold");
-        doc.text("2. Item-Wise Sales Breakdown", 14, y);
-        y += 6;
+        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Item Description", 18, y + 4.5);
+        doc.text("Qty Sold", 120, y + 4.5);
+        doc.text("Total Revenue", 160, y + 4.5);
+
+        y += 7;
         doc.setFont("helvetica", "normal");
-        Object.keys(itemBreakdown).forEach((item) => {
+        doc.setTextColor(51, 65, 85);
+        Object.keys(itemBreakdown).forEach((item, idx) => {
           if (y > 270) {
             doc.addPage();
             y = 20;
           }
-          doc.text(`• ${item} (Qty: ${itemBreakdown[item].qty})`, 18, y);
-          doc.text(`₹${itemBreakdown[item].rev}`, 165, y);
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y, 182, 6, "F");
+          }
+          doc.text(String(item), 18, y + 4.2);
+          doc.text(String(itemBreakdown[item].qty), 125, y + 4.2);
+          doc.text(`Rs. ${itemBreakdown[item].rev}`, 160, y + 4.2);
           y += 6;
         });
-        y += 6;
 
-        if (y > 250) {
+        y += 8;
+
+        if (y > 240) {
           doc.addPage();
           y = 20;
         }
         doc.setFont("helvetica", "bold");
-        doc.text("3. Building-Wise Sales Breakdown", 14, y);
-        y += 6;
-        doc.setFont("helvetica", "normal");
-        Object.keys(buildingBreakdown).forEach((bldg) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(`• ${bldg}`, 18, y);
-          doc.text(`₹${buildingBreakdown[bldg]}`, 165, y);
-          y += 6;
-        });
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text("2. Building & Location Revenue Share", 14, y);
         y += 6;
 
-        if (y > 250) {
-          doc.addPage();
-          y = 20;
-        }
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
         doc.setFont("helvetica", "bold");
-        doc.text("4. User/Employee-Wise Sales Breakdown", 14, y);
-        y += 6;
+        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Building / Location", 18, y + 4.5);
+        doc.text("Revenue Contribution", 140, y + 4.5);
+
+        y += 7;
         doc.setFont("helvetica", "normal");
-        Object.keys(userBreakdown).forEach((usr) => {
+        doc.setTextColor(51, 65, 85);
+        Object.keys(buildingBreakdown).forEach((bldg, idx) => {
           if (y > 270) {
             doc.addPage();
             y = 20;
           }
-          doc.text(`• ${usr}`, 18, y);
-          doc.text(`₹${userBreakdown[usr]}`, 165, y);
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y, 182, 6, "F");
+          }
+          doc.text(String(bldg), 18, y + 4.2);
+          doc.text(`Rs. ${buildingBreakdown[bldg]}`, 140, y + 4.2);
           y += 6;
         });
 
-        doc.save(`Tastea_Professional_Report_${startDate}_to_${endDate}.pdf`);
-        alert(
-          "✅ Professional Entity-Wise PDF Report downloaded successfully!",
+        doc.save(
+          `Tastea_Business_Analysis_Report_${formatDateToDDMMYY(startDate).replace(/\//g, "-")}_to_${formatDateToDDMMYY(endDate).replace(/\//g, "-")}.pdf`,
         );
+        alert("✅ Clean Business Analysis PDF Report generated successfully!");
       };
 
-      window.downloadPeakHourSlotReport = async function () {
+      window.downloadPeakHourSlotReportPdf = function () {
         let slotVolume = {};
         allFetchedOrders.forEach((ord) => {
           let slot =
@@ -2200,15 +2614,47 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           slotVolume[slot].revenue += Number(ord.total_amount || 0);
         });
 
-        let csv = [["Delivery Time Slot", "Total Orders", "Total Revenue (₹)"]];
-        Object.keys(slotVolume).forEach((slot) => {
-          csv.push([slot, slotVolume[slot].orders, slotVolume[slot].revenue]);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 32, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(15);
+        doc.setTextColor(245, 158, 11);
+        doc.text("TASTEA - PEAK SLOT ANALYSIS REPORT", 14, 15);
+        doc.setFontSize(9);
+        doc.setTextColor(226, 232, 240);
+        doc.text(`Generated: ${formatDateToDDMMYY(new Date())}`, 14, 23);
+
+        let y = 45;
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Delivery Time Slot", 18, y + 4.5);
+        doc.text("Total Orders", 110, y + 4.5);
+        doc.text("Total Revenue", 155, y + 4.5);
+
+        y += 7;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(51, 65, 85);
+        Object.keys(slotVolume).forEach((slot, idx) => {
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y, 182, 6, "F");
+          }
+          doc.text(String(slot), 18, y + 4.2);
+          doc.text(String(slotVolume[slot].orders), 110, y + 4.2);
+          doc.text(`Rs.${slotVolume[slot].revenue}`, 155, y + 4.2);
+          y += 6;
         });
 
-        exportCsvFile(csv, "Tastea_Peak_Slot_Analysis.csv");
+        doc.save(
+          `Tastea_Peak_Slot_Analysis_${formatDateToDDMMYY(new Date()).replace(/\//g, "-")}.pdf`,
+        );
+        alert("✅ Peak Slot Analysis PDF generated successfully!");
       };
 
-      window.downloadCreditAgingReport = async function () {
+      window.downloadCreditAgingReportPdf = async function () {
         let { data: employees } = await supabaseClient
           .from("employees")
           .select("*, locations(building_name)");
@@ -2217,31 +2663,62 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           return;
         }
 
-        let csv = [
-          [
-            "Customer Name",
-            "Phone",
-            "Building",
-            "Credit Limit (₹)",
-            "Outstanding Dues (₹)",
-          ],
-        ];
-        employees.forEach((emp) => {
-          if (Number(emp.due_amount || 0) > 0) {
-            csv.push([
-              emp.name,
-              emp.phone,
-              emp.locations?.building_name || "N/A",
-              emp.credit_limit || 0,
-              emp.due_amount || 0,
-            ]);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 32, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(15);
+        doc.setTextColor(245, 158, 11);
+        doc.text("TASTEA - CREDIT AGING & DUES REPORT", 14, 15);
+        doc.setFontSize(9);
+        doc.setTextColor(226, 232, 240);
+        doc.text(`Generated: ${formatDateToDDMMYY(new Date())}`, 14, 23);
+
+        let y = 45;
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Customer Name", 18, y + 4.5);
+        doc.text("Phone", 70, y + 4.5);
+        doc.text("Building", 110, y + 4.5);
+        doc.text("Pending Due", 155, y + 4.5);
+
+        y += 7;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(51, 65, 85);
+        let count = 0;
+        employees.forEach((emp, idx) => {
+          let due = Number(emp.due_amount || 0);
+          if (due > 0) {
+            count++;
+            if (idx % 2 === 1) {
+              doc.setFillColor(248, 250, 252);
+              doc.rect(14, y, 182, 6, "F");
+            }
+            doc.text(String(emp.name), 18, y + 4.2);
+            doc.text(String(emp.phone || "N/A"), 70, y + 4.2);
+            doc.text(
+              String(emp.locations?.building_name || "N/A"),
+              110,
+              y + 4.2,
+            );
+            doc.text(`Rs.${due}`, 155, y + 4.2);
+            y += 6;
           }
         });
 
-        exportCsvFile(csv, "Tastea_Credit_Aging_Dues.csv");
+        if (count === 0) {
+          doc.text("No pending credit dues found.", 18, y + 6);
+        }
+
+        doc.save(
+          `Tastea_Credit_Aging_${formatDateToDDMMYY(new Date()).replace(/\//g, "-")}.pdf`,
+        );
+        alert("✅ Credit Aging PDF generated successfully!");
       };
 
-      window.downloadBuildingPenetrationReport = async function () {
+      window.downloadBuildingPenetrationReportPdf = async function () {
         let bldgStats = {};
         allFetchedOrders.forEach((ord) => {
           let bldg =
@@ -2255,201 +2732,121 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           if (ord.employee_id) bldgStats[bldg].uniqueUsers.add(ord.employee_id);
         });
 
-        let csv = [
-          [
-            "Building / Location",
-            "Total Orders",
-            "Active Users",
-            "Total Revenue (₹)",
-          ],
-        ];
-        Object.keys(bldgStats).forEach((bldg) => {
-          csv.push([
-            bldg,
-            bldgStats[bldg].orders,
-            bldgStats[bldg].uniqueUsers.size,
-            bldgStats[bldg].revenue,
-          ]);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 32, "F");
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(15);
+        doc.setTextColor(245, 158, 11);
+        doc.text("TASTEA - BUILDING ADOPTION REPORT", 14, 15);
+        doc.setFontSize(9);
+        doc.setTextColor(226, 232, 240);
+        doc.text(`Generated: ${formatDateToDDMMYY(new Date())}`, 14, 23);
+
+        let y = 45;
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Building / Location", 18, y + 4.5);
+        doc.text("Orders", 110, y + 4.5);
+        doc.text("Users", 135, y + 4.5);
+        doc.text("Revenue", 160, y + 4.5);
+
+        y += 7;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(51, 65, 85);
+        Object.keys(bldgStats).forEach((bldg, idx) => {
+          if (idx % 2 === 1) {
+            doc.setFillColor(248, 250, 252);
+            doc.rect(14, y, 182, 6, "F");
+          }
+          doc.text(String(bldg), 18, y + 4.2);
+          doc.text(String(bldgStats[bldg].orders), 110, y + 4.2);
+          doc.text(String(bldgStats[bldg].uniqueUsers.size), 135, y + 4.2);
+          doc.text(`Rs.${bldgStats[bldg].revenue}`, 160, y + 4.2);
+          y += 6;
         });
 
-        exportCsvFile(csv, "Tastea_Building_Adoption_Report.csv");
+        doc.save(
+          `Tastea_Building_Adoption_${formatDateToDDMMYY(new Date()).replace(/\//g, "-")}.pdf`,
+        );
+        alert("✅ Building Adoption PDF generated successfully!");
       };
 
-      window.downloadQuotaUtilizationReport = async function () {
-        let csv = [
-          ["Category", "Max Quota", "Total Sold Today", "Remaining Slots"],
-        ];
-        let vegSold = Number(
+      window.downloadQuotaUtilizationReportPdf = async function () {
+        let snacksSold = Number(
           document.getElementById("admin-veg-count")?.innerText || 0,
         );
-        let nonVegSold = Number(
-          document.getElementById("admin-nonveg-count")?.innerText || 0,
+        let bevSold = Number(
+          document.getElementById("admin-beverages-count")?.innerText || 0,
         );
-        csv.push(["Veg", vegLimit, vegSold, Math.max(0, vegLimit - vegSold)]);
-        csv.push([
-          "Non-Veg",
-          nonVegLimit,
-          nonVegSold,
-          Math.max(0, nonVegLimit - nonVegSold),
-        ]);
-
-        exportCsvFile(csv, "Tastea_Quota_Efficiency_Report.csv");
-      };
-
-      function exportCsvFile(csvArray, filename) {
-        let link = document.createElement("a");
-        link.href =
-          "data:text/csv;charset=utf-8," +
-          encodeURI(csvArray.map((e) => e.join(",")).join("\n"));
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        alert(`✅ ${filename} downloaded successfully!`);
-      }
-
-      window.addBillingItem = function () {
-        const name = document.getElementById("bill-item-name").value.trim();
-        const price = Number(
-          document.getElementById("bill-item-price").value || 0,
+        let foodSold = Number(
+          document.getElementById("admin-food-count")?.innerText || 0,
         );
-        const qty = Number(document.getElementById("bill-item-qty").value || 1);
-        if (!name || price <= 0) {
-          alert("Enter valid item description and price.");
-          return;
-        }
-
-        billingCartItems.push({ name, price, qty });
-        document.getElementById("bill-item-name").value = "";
-        document.getElementById("bill-item-price").value = "";
-        document.getElementById("bill-item-qty").value = "1";
-        renderBillingTable();
-      };
-
-      window.removeBillingItem = function (index) {
-        billingCartItems.splice(index, 1);
-        renderBillingTable();
-      };
-
-      function renderBillingTable() {
-        let container = document.getElementById("billing-items-table");
-        if (billingCartItems.length === 0) {
-          container.innerHTML =
-            '<tr><td colspan="5" class="p-4 text-center text-slate-400">No items added yet.</td></tr>';
-          return;
-        }
-        let html = "";
-        billingCartItems.forEach((item, idx) => {
-          html += `<tr class="border-b">
-            <td class="p-3 font-bold text-slate-900">${item.name}</td>
-            <td class="p-3 text-right font-mono">₹${item.price}</td>
-            <td class="p-3 text-center font-mono">${item.qty}</td>
-            <td class="p-3 text-right font-mono font-black text-amber-600">₹${item.price * item.qty}</td>
-            <td class="p-3 text-center"><button onclick="removeBillingItem(${idx})" class="text-rose-600 font-bold">✕</button></td>
-          </tr>`;
-        });
-        container.innerHTML = html;
-      }
-
-      window.generateUserBulkBillPdf = function () {
-        const clientName = document
-          .getElementById("bill-client-name")
-          .value.trim();
-        const clientPhone = document
-          .getElementById("bill-client-phone")
-          .value.trim();
-        const clientAddress = document
-          .getElementById("bill-client-address")
-          .value.trim();
-
-        if (!clientName || billingCartItems.length === 0) {
-          alert("Please enter customer details and add at least one item.");
-          return;
-        }
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(20);
-        doc.setTextColor(30, 27, 75);
-        doc.text("TASTEA FOOD & BEVERAGE", 14, 20);
-
-        doc.setFontSize(10);
-        doc.setTextColor(180, 83, 9);
-        doc.text("OFFICIAL TAX INVOICE / BULK BILL", 14, 27);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(100, 116, 139);
-        doc.text("34, Kamarajar Street, Tirunelveli - Junction", 14, 33);
-        doc.text("FSSAI Lic: 22426584000044 | UPI: 9629511751@ybl", 14, 38);
-
-        doc.setLineWidth(0.5);
-        doc.setLineColor(217, 119, 6);
-        doc.line(14, 43, 196, 43);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(15, 23, 42);
-        doc.text("Billed To:", 14, 53);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.text(`Customer / Company: ${clientName}`, 14, 60);
-        doc.text(`Phone: ${clientPhone}`, 14, 66);
-        doc.text(`Address: ${clientAddress}`, 14, 72);
-        doc.text(`Date: ${new Date().toLocaleString()}`, 135, 60);
-
-        let y = 84;
         doc.setFillColor(15, 23, 42);
-        doc.rect(14, y, 182, 8, "F");
+        doc.rect(0, 0, 210, 32, "F");
         doc.setFont("helvetica", "bold");
+        doc.setFontSize(15);
+        doc.setTextColor(245, 158, 11);
+        doc.text("TASTEA - QUOTA EFFICIENCY REPORT", 14, 15);
         doc.setFontSize(9);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Item Description", 18, y + 5.5);
-        doc.text("Price (₹)", 120, y + 5.5);
-        doc.text("Qty", 150, y + 5.5);
-        doc.text("Total (₹)", 175, y + 5.5);
+        doc.setTextColor(226, 232, 240);
+        doc.text(`Generated: ${formatDateToDDMMYY(new Date())}`, 14, 23);
 
-        y += 8;
+        let y = 45;
+        doc.setFillColor(15, 23, 42);
+        doc.rect(14, y, 182, 7, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.text("Category", 18, y + 4.5);
+        doc.text("Max Quota", 80, y + 4.5);
+        doc.text("Sold Today", 120, y + 4.5);
+        doc.text("Remaining Slots", 155, y + 4.5);
+
+        y += 7;
         doc.setFont("helvetica", "normal");
         doc.setTextColor(51, 65, 85);
 
-        let grandTotal = 0;
-        billingCartItems.forEach((item, idx) => {
-          let lineTotal = item.price * item.qty;
-          grandTotal += lineTotal;
+        let categories = [
+          {
+            name: "Snacks",
+            max: snackLimit,
+            sold: snacksSold,
+            rem: Math.max(0, snackLimit - snacksSold),
+          },
+          {
+            name: "Beverages",
+            max: bevLimit,
+            sold: bevSold,
+            rem: Math.max(0, bevLimit - bevSold),
+          },
+          {
+            name: "Food",
+            max: foodLimit,
+            sold: foodSold,
+            rem: Math.max(0, foodLimit - foodSold),
+          },
+        ];
 
+        categories.forEach((c, idx) => {
           if (idx % 2 === 1) {
             doc.setFillColor(248, 250, 252);
-            doc.rect(14, y, 182, 8, "F");
+            doc.rect(14, y, 182, 6, "F");
           }
-
-          doc.text(item.name, 18, y + 5.5);
-          doc.text(item.price.toString(), 120, y + 5.5);
-          doc.text(item.qty.toString(), 150, y + 5.5);
-          doc.text(lineTotal.toString(), 175, y + 5.5);
-          y += 8;
+          doc.text(c.name, 18, y + 4.2);
+          doc.text(String(c.max), 80, y + 4.2);
+          doc.text(String(c.sold), 120, y + 4.2);
+          doc.text(String(c.rem), 155, y + 4.2);
+          y += 6;
         });
 
-        y += 4;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(15, 23, 42);
-        doc.text(`Grand Total: ₹${grandTotal}`, 145, y + 6);
-
-        y += 25;
-        doc.setFontSize(9);
-        doc.setTextColor(100, 116, 139);
-        doc.text(
-          "Thank you for your business! For queries contact 9629511751.",
-          14,
-          y,
+        doc.save(
+          `Tastea_Quota_Efficiency_${formatDateToDDMMYY(new Date()).replace(/\//g, "-")}.pdf`,
         );
-
-        doc.save(`Tastea_Invoice_${clientName.replace(/\s+/g, "_")}.pdf`);
-        alert("✅ Professional PDF Invoice generated successfully!");
+        alert("✅ Quota Efficiency PDF generated successfully!");
       };
 
       window.archiveAndClearOrdersByCutoff = async function () {
@@ -2496,7 +2893,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
                 o.is_delivered ? "Delivered" : "Preparing",
               ]);
             });
-            let todayStr = new Date().toISOString().slice(0, 10);
+            let todayStr = formatDateToDDMMYY(new Date()).replace(/\//g, "-");
             exportCsvFile(
               csv,
               `Tastea_Cutoff_${cutoffTime.replace(":", "")}_Archive_${todayStr}.csv`,
@@ -2557,7 +2954,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
 
           csv.push([
             o.id,
-            new Date(o.created_at).toLocaleString(),
+            formatDateToDDMMYY(o.created_at),
             o.employees?.name || "Walk-in",
             o.employees?.phone || "N/A",
             o.locations?.building_name || "Campus",
@@ -2568,7 +2965,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
           ]);
         });
         csv.push([]);
-        csv.push(["SUMMARY FOR DATE", picker]);
+        csv.push(["SUMMARY FOR DATE", formatDateToDDMMYY(picker)]);
         csv.push(["Total Revenue", totalRev]);
         csv.push(["Total UPI Collections (Pay Now)", totalUPI]);
         csv.push(["Total Credit Dues (Pay Later)", totalCredit]);
@@ -2577,7 +2974,7 @@ Hi! Today at Tastea: Enjoy our special Evening Tea Flask & Crispy Snacks combo a
         link.href =
           "data:text/csv;charset=utf-8," +
           encodeURI(csv.map((e) => e.join(",")).join("\n"));
-        link.download = `Tastea_Sales_Statement_${picker}.csv`;
+        link.download = `Tastea_Sales_Statement_${formatDateToDDMMYY(picker).replace(/\//g, "-")}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
