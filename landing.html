@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tastea | Luxury Corporate SnackPass & Refreshment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+      body {
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+        background: #060913;
+        color: #f8fafc;
+        overflow-x: hidden;
+      }
+      .luxury-glass {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(245, 158, 11, 0.28);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      }
+      .gold-gradient-text {
+        background: linear-gradient(
+          135deg,
+          #fbbf24 0%,
+          #f59e0b 50%,
+          #d97706 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .gold-btn-gradient {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+      }
+      .gold-btn-gradient:hover {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      }
+      .hero-glow {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(
+          circle,
+          rgba(245, 158, 11, 0.18) 0%,
+          rgba(6, 9, 19, 0) 70%
+        );
+        z-index: 0;
+        pointer-events: none;
+      }
+      @keyframes scrollMarquee {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .animate-marquee {
+        display: flex;
+        width: max-content;
+        animation: scrollMarquee 30s linear infinite;
+      }
+      .animate-marquee:hover {
+        animation-play-state: paused;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen flex flex-col justify-between relative selection:bg-amber-500 selection:text-slate-950 pb-12"
+  >
+    <!-- Glowing Background Orbs -->
+    <div class="hero-glow top-12 left-1/2 -translate-x-1/2"></div>
+
+    <!-- HEADER / NAV -->
+    <header
+      class="w-full py-4 px-4 sm:px-8 border-b border-amber-500/15 sticky top-0 z-50 backdrop-blur-xl bg-slate-950/85"
+    >
+      <div class="max-w-5xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div
+              class="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-amber-700 rounded-2xl blur opacity-75"
+            ></div>
+            <img
+              src="logo.png"
+              alt="Tastea Logo"
+              class="relative w-11 h-11 rounded-2xl object-cover border border-amber-500/40 shadow-2xl animate-pulse"
+            />
+          </div>
+          <div>
+            <span
+              class="font-black text-sm uppercase tracking-wider gold-gradient-text block"
+              >Tastea</span
+            >
+            <span
+              class="text-[9px] text-slate-400 tracking-widest uppercase block -mt-1"
+              >Food & Beverage</span
+            >
+          </div>
+        </div>
+
+        <!-- INSTALL APP & SHARE APP DUAL BUTTONS -->
+        <div class="flex items-center gap-2">
+          <!-- Install App Button -->
+          <button
+            id="install-app-btn"
+            onclick="installTasteaApp()"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-3 sm:px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition transform hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-lg hidden"
+            title="Install App"
+          >
+            <i class="fa-solid fa-download"></i>
+            <span class="hidden sm:inline">Install App</span>
+          </button>
+
+          <!-- Share App Button -->
+          <button
+            onclick="shareTasteaApp()"
+            class="gold-btn-gradient text-slate-950 font-black px-3 sm:px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition transform hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-lg"
+            title="Share App"
+          >
+            <i class="fa-solid fa-share-nodes"></i>
+            <span class="hidden sm:inline">Share App</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main
+      class="max-w-5xl mx-auto px-4 py-8 space-y-14 flex-1 w-full relative z-10"
+    >
+      <!-- HERO SECTION WITH MODEL.JPG -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center pt-4">
+        <div class="space-y-6 text-center md:text-left">
+          <div
+            class="inline-flex items-center gap-2 bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-extrabold uppercase px-4 py-1.5 rounded-full tracking-widest shadow-inner"
+          >
+            <img
+              src="logo.png"
+              alt="Icon"
+              class="w-4 h-4 rounded-md object-cover"
+            />
+            Fresh Tea & Traditional South Indian Snacks
+          </div>
+          <h1
+            class="text-3xl sm:text-5xl font-extrabold uppercase tracking-tight text-white leading-[1.1]"
+          >
+            Tastea
+            <span class="gold-gradient-text">Traditional Taste</span> at Your
+            Office Desk!
+          </h1>
+          <p
+            class="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium"
+          >
+            Experience steaming hot tea, crispy traditional snacks, and
+            corporate refreshments delivered right on time with lightning-fast
+            service.
+          </p>
+          <div
+            class="pt-2 flex flex-wrap justify-center md:justify-start gap-3"
+          >
+            <a
+              href="index.html"
+              class="gold-btn-gradient text-slate-950 font-black px-8 py-4 rounded-2xl text-xs uppercase tracking-widest transition transform hover:scale-105 shadow-2xl flex items-center gap-2"
+            >
+              <span>Scan & Order Now</span>
+              <i class="fa-solid fa-arrow-right text-sm"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- MODEL.JPG SHOWCASE -->
+        <div class="flex justify-center relative">
+          <div
+            class="absolute -inset-2 bg-gradient-to-r from-amber-500 to-amber-700 rounded-3xl blur-xl opacity-30 animate-pulse"
+          ></div>
+
+          <div
+            class="relative w-full max-w-md aspect-[4/5] rounded-3xl overflow-hidden luxury-glass border-2 border-amber-500/50 shadow-2xl bg-slate-900/90 group"
+          >
+            <img
+              src="model.jpg"
+              alt="Tastea Model"
+              onerror="this.src = 'Model.png'"
+              class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700"
+            />
+
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent flex flex-col justify-end p-6 space-y-2"
+            >
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-[9px] bg-amber-500 text-slate-950 font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-lg"
+                  >✨ Signature Experience</span
+                >
+                <span
+                  class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full uppercase"
+                  >100% Pure & Fresh</span
+                >
+              </div>
+              <h3 class="text-white font-extrabold text-base tracking-wide">
+                Authentic Tirunelveli Taste, Crafted with Love ☕
+              </h3>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Steaming hot brew & traditional organic snacks delivered right
+                to your desk.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER CATALOG AUTO-SCROLLING TICKER -->
+      <div
+        class="py-6 space-y-4 luxury-glass rounded-3xl border-2 border-amber-500/40 relative overflow-hidden shadow-2xl"
+      >
+        <div class="text-center px-4 space-y-1">
+          <div class="inline-flex items-center gap-2">
+            <img
+              src="logo.png"
+              class="w-5 h-5 rounded-md object-cover shadow"
+            />
+            <h2
+              class="text-xs font-black uppercase tracking-widest gold-gradient-text"
+            >
+              ✨ Live Master Catalog Spotlight
+            </h2>
+          </div>
+          <p class="text-[10px] text-slate-300 font-medium">
+            Freshly brewed tea, hot snacks, and traditional delicacies ready to
+            order
+          </p>
+        </div>
+        <div class="overflow-hidden w-full relative">
+          <div
+            class="animate-marquee flex gap-4 py-2 px-2"
+            id="marquee-catalog-grid"
+          >
+            <div
+              class="flex-shrink-0 w-36 luxury-glass p-2.5 rounded-2xl text-center space-y-2 border border-amber-500/30 shadow-lg"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150&auto=format&fit=crop&q=80"
+                class="w-full h-28 rounded-xl object-cover shadow-md"
+                alt="Snack"
+              />
+              <h4 class="font-bold text-[11px] truncate text-slate-200">
+                Kozhukattai
+              </h4>
+            </div>
+            <div
+              class="flex-shrink-0 w-36 luxury-glass p-2.5 rounded-2xl text-center space-y-2 border border-amber-500/30 shadow-lg"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=150&auto=format&fit=crop&q=80"
+                class="w-full h-28 rounded-xl object-cover shadow-md"
+                alt="Tea"
+              />
+              <h4 class="font-bold text-[11px] truncate text-slate-200">
+                Special Tea
+              </h4>
+            </div>
+            <div
+              class="flex-shrink-0 w-36 luxury-glass p-2.5 rounded-2xl text-center space-y-2 border border-amber-500/30 shadow-lg"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=150&auto=format&fit=crop&q=80"
+                class="w-full h-28 rounded-xl object-cover shadow-md"
+                alt="Food"
+              />
+              <h4 class="font-bold text-[11px] truncate text-slate-200">
+                Paniyaram
+              </h4>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B2B CORPORATE SNACKPASS PRICING SECTION WITH 6 PULSES PHOTOS -->
+      <section
+        class="luxury-glass p-6 sm:p-8 rounded-3xl space-y-8 border-2 border-amber-500/50 relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 right-0 bg-amber-500 text-slate-950 font-black text-[10px] uppercase px-4 py-1 rounded-bl-2xl tracking-widest shadow-md"
+        >
+          Corporate Exclusive 🏢
+        </div>
+        <div class="text-center space-y-2 max-w-lg mx-auto">
+          <h2 class="text-xl sm:text-2xl font-extrabold uppercase text-white">
+            B2B Corporate
+            <span class="gold-gradient-text">SnackPass Plans</span>
+          </h2>
+          <p class="text-xs text-slate-300 font-medium">
+            Tailored pricing models designed for offices, IT parks, and
+            corporate workspaces in Tirunelveli.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="luxury-glass p-6 rounded-2xl space-y-4 border border-slate-700 bg-slate-900/40 relative"
+          >
+            <div class="flex justify-between items-start">
+              <div>
+                <span
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                  >Standard Plan</span
+                >
+                <h3 class="text-xl font-extrabold text-white mt-0.5">
+                  Tea Only
+                </h3>
+              </div>
+              <div class="text-right">
+                <span class="text-3xl font-black text-amber-400">₹12</span>
+                <span class="text-xs text-slate-400 block font-bold"
+                  >per cup</span
+                >
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Pure, premium branded glass tea brewed fresh and served hot at
+              employee desks without side pulses.
+            </p>
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-amber-400"></i> Branded Tastea
+                Glass Servings
+              </li>
+              <li class="flex items-center gap-2">
+                <i class="fa-solid fa-check text-amber-400"></i> Timely Office
+                Batch Delivery
+              </li>
+            </ul>
+          </div>
+
+          <div
+            class="luxury-glass p-6 rounded-2xl space-y-5 border-2 border-amber-500 bg-amber-500/10 relative"
+          >
+            <div
+              class="absolute -top-3 right-4 bg-emerald-500 text-slate-950 font-black text-[9px] uppercase px-3 py-0.5 rounded-full shadow"
+            >
+              Most Recommended ⭐
+            </div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span
+                  class="text-[10px] font-black text-amber-400 uppercase tracking-wider"
+                  >Value Pack</span
+                >
+                <h3 class="text-xl font-extrabold text-white mt-0.5">
+                  Tea + Healthy Pulses
+                </h3>
+              </div>
+              <div class="text-right">
+                <span class="text-3xl font-black gold-gradient-text">₹15</span>
+                <span class="text-xs text-amber-300/80 block font-bold"
+                  >per cup</span
+                >
+              </div>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              Hot tea served along with daily rotation of 6 healthy organic
+              pulses (Sundal varieties) for wholesome nutrition.
+            </p>
+
+            <div class="space-y-2 pt-1">
+              <span
+                class="text-[10px] font-extrabold uppercase text-amber-300 tracking-wider block"
+                >🌱 Daily Rotation 6 Healthy Pulses Included:</span
+              >
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <div class="text-center space-y-1">
+                  <img
+                    src="8.png"
+                    alt="White Chana"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >White Chana</span
+                  >
+                </div>
+                <div class="text-center space-y-1">
+                  <img
+                    src="9.png"
+                    alt="Black Chana"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >Black Chana</span
+                  >
+                </div>
+                <div class="text-center space-y-1">
+                  <img
+                    src="10.png"
+                    alt="Green Moong"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >Green Moong</span
+                  >
+                </div>
+                <div class="text-center space-y-1">
+                  <img
+                    src="11.png"
+                    alt="Thoor Dal"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >Thoor Dal</span
+                  >
+                </div>
+                <div class="text-center space-y-1">
+                  <img
+                    src="12.png"
+                    alt="Thattapayiru"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >Thattapayiru</span
+                  >
+                </div>
+                <div class="text-center space-y-1">
+                  <img
+                    src="13.png"
+                    alt="Pepper Corn"
+                    class="w-full h-14 object-cover rounded-xl border border-amber-500/40 shadow-md"
+                  />
+                  <span
+                    class="text-[8px] font-bold text-slate-300 block truncate"
+                    >Pepper Corn</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- HYGIENE & LAB TESTING SHOWCASE -->
+      <section
+        class="luxury-glass p-6 sm:p-8 rounded-3xl space-y-8 border border-amber-500/30"
+      >
+        <div class="text-center space-y-2 max-w-lg mx-auto">
+          <span
+            class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest"
+          >
+            🛡️ 100% Scientific Hygiene Assured
+          </span>
+          <h2 class="text-xl sm:text-2xl font-extrabold uppercase text-white">
+            Milk Purity Testing &
+            <span class="gold-gradient-text">UV Sanitization</span>
+          </h2>
+          <p class="text-xs text-slate-300">
+            Rigorous quality checks and advanced sterilization protocols before
+            every brew.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="luxury-glass p-5 rounded-3xl space-y-4 border border-slate-700 bg-slate-900/60 flex flex-col justify-between"
+          >
+            <div
+              class="aspect-video rounded-2xl overflow-hidden border border-amber-500/30 shadow-md"
+            >
+              <img
+                src="40882.jpg"
+                alt="Milk Purity Testing"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <h3 class="font-extrabold text-sm text-white uppercase">
+              Milk Purity Testing Station
+            </h3>
+          </div>
+          <div
+            class="luxury-glass p-5 rounded-3xl space-y-4 border border-slate-700 bg-slate-900/60 flex flex-col justify-between"
+          >
+            <div
+              class="aspect-video rounded-2xl overflow-hidden border border-amber-500/30 shadow-md"
+            >
+              <img
+                src="40883.jpg"
+                alt="UV-C Sterilization"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <h3 class="font-extrabold text-sm text-white uppercase">
+              UV-C Sterilization Device
+            </h3>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRADITIONAL KITCHEN PREPARATION -->
+      <section
+        class="luxury-glass p-6 sm:p-8 rounded-3xl space-y-6 border border-amber-500/30"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-4">
+            <span
+              class="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest"
+            >
+              🍯 Traditional Sweet Kitchen
+            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold uppercase text-white">
+              Handcrafted
+              <span class="gold-gradient-text">South Indian Delicacies</span>
+            </h2>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              From steaming hot Kozhukattai and Paniyaram to crispy traditional
+              snacks, prepared with pure ingredients.
+            </p>
+          </div>
+          <div
+            class="aspect-video sm:aspect-[4/3] rounded-3xl overflow-hidden border-2 border-amber-500/40 shadow-2xl"
+          >
+            <img
+              src="40884.jpg"
+              alt="Traditional Kitchen"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- DYNAMIC REELS & SOCIAL MEDIA SPOTLIGHT -->
+      <section
+        class="luxury-glass p-6 sm:p-8 rounded-3xl space-y-6 border border-amber-500/30"
+      >
+        <div class="text-center space-y-1.5">
+          <span
+            class="bg-rose-500/10 text-rose-400 border border-rose-500/30 text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest"
+          >
+            📱 Tastea Shorts & Reels Spotlight
+          </span>
+          <h2 class="text-lg sm:text-xl font-extrabold uppercase text-white">
+            Watch Our Brew & Snack Reels
+          </h2>
+          <p class="text-xs text-slate-300">
+            Live YouTube shorts and social media videos updated from Admin Hub.
+          </p>
+        </div>
+
+        <div
+          class="grid grid-cols-2 sm:grid-cols-4 gap-4"
+          id="landing-reels-grid"
+        >
+          <div
+            class="relative aspect-[9/16] rounded-2xl overflow-hidden border border-amber-500/30 shadow-xl bg-slate-950 flex items-center justify-center text-xs text-slate-400"
+          >
+            Loading Reels...
+          </div>
+          <div
+            class="relative aspect-[9/16] rounded-2xl overflow-hidden border border-amber-500/30 shadow-xl bg-slate-950 flex items-center justify-center text-xs text-slate-400"
+          >
+            Loading Reels...
+          </div>
+          <div
+            class="relative aspect-[9/16] rounded-2xl overflow-hidden border border-amber-500/30 shadow-xl bg-slate-950 flex items-center justify-center text-xs text-slate-400"
+          >
+            Loading Reels...
+          </div>
+          <div
+            class="relative aspect-[9/16] rounded-2xl overflow-hidden border border-amber-500/30 shadow-xl bg-slate-950 flex items-center justify-center text-xs text-slate-400"
+          >
+            Loading Reels...
+          </div>
+        </div>
+      </section>
+
+      <!-- SOCIAL MEDIA LINKS -->
+      <div
+        class="luxury-glass p-8 rounded-3xl text-center space-y-6 border border-amber-500/30 shadow-xl"
+      >
+        <div class="space-y-2">
+          <h2 class="text-lg font-extrabold uppercase gold-gradient-text">
+            📱 Connect With Us
+          </h2>
+          <p class="text-xs text-slate-300 max-w-sm mx-auto font-medium">
+            Follow our pages for daily reels, updates, and offers!
+          </p>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href="https://www.instagram.com/tastea_2026/"
+            target="_blank"
+            class="w-14 h-14 rounded-2xl bg-slate-900 hover:bg-pink-600 text-white flex items-center justify-center text-2xl transition transform hover:scale-110 shadow-xl border border-slate-700"
+            title="Instagram"
+          >
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+          <a
+            href="https://www.facebook.com/share/1DEVnDSAYU/"
+            target="_blank"
+            class="w-14 h-14 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white flex items-center justify-center text-2xl transition transform hover:scale-110 shadow-xl border border-slate-700"
+            title="Facebook"
+          >
+            <i class="fa-brands fa-facebook-f"></i>
+          </a>
+          <a
+            href="https://www.youtube.com/@Tastea_2026"
+            target="_blank"
+            class="w-14 h-14 rounded-2xl bg-slate-900 hover:bg-red-600 text-white flex items-center justify-center text-2xl transition transform hover:scale-110 shadow-xl border border-slate-700"
+            title="YouTube"
+          >
+            <i class="fa-brands fa-youtube"></i>
+          </a>
+          <a
+            href="https://wa.me/918754991879"
+            target="_blank"
+            class="w-14 h-14 rounded-2xl bg-slate-900 hover:bg-emerald-600 text-white flex items-center justify-center text-2xl transition transform hover:scale-110 shadow-xl border border-slate-700"
+            title="WhatsApp"
+          >
+            <i class="fa-brands fa-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer
+      class="w-full py-6 px-6 border-t border-slate-800/80 text-center text-xs text-slate-400 space-y-2 mt-12 bg-slate-950/60 backdrop-blur-md"
+    >
+      <p>© 2026 Tastea Food & Beverage. All rights reserved.</p>
+      <p class="text-amber-400 font-semibold tracking-wider">
+        Operating in Tirunelveli ☕
+      </p>
+      <div class="pt-1">
+        <a
+          href="privacy.html"
+          class="text-slate-400 hover:text-amber-400 underline text-[11px] transition"
+          >Privacy Policy</a
+        >
+      </div>
+    </footer>
+
+    <!-- SCRIPT ENGINE -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCggBRdVQqEsVX6pOnackOcCLr5RMXmebc",
+        authDomain: "tastea-food-and-beverage.firebaseapp.com",
+        projectId: "tastea-food-and-beverage",
+        storageBucket: "tastea-food-and-beverage.firebasestorage.app",
+        messagingSenderId: "669318528715",
+        appId: "1:669318528715:web:421955e4a2cdff00de654e",
+        measurementId: "G-ZZ38SHY5X1",
+      };
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Install App & Share App Logic
+      let deferredPrompt;
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.getElementById("install-app-btn");
+        if (installBtn) installBtn.classList.remove("hidden");
+      });
+
+      function installTasteaApp() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+              console.log("User accepted the install prompt");
+            }
+            deferredPrompt = null;
+          });
+        } else {
+          alert(
+            "To install, use your browser menu (Chrome/Safari) and select 'Add to Home Screen' or 'Install App'.",
+          );
+        }
+      }
+
+      function shareTasteaApp() {
+        const shareData = {
+          title: "Tastea Food & Beverage",
+          text: "Order fresh tea, snacks, and corporate refreshments instantly on Tastea SnackPass!",
+          url: window.location.origin + "/index.html",
+        };
+
+        if (navigator.share) {
+          navigator
+            .share(shareData)
+            .catch((err) => console.log("Error sharing:", err));
+        } else {
+          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareData.text + " " + shareData.url)}`;
+          window.open(whatsappUrl, "_blank");
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        // 1. Load Master Catalog Ticker
+        try {
+          const snap = await Promise.race([
+            db.collection("menu_items_rows").get(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 4000),
+            ),
+          ]);
+          let items = [];
+          snap.forEach((doc) => {
+            items.push(doc.data());
+          });
+
+          if (items.length > 0) {
+            let html = "";
+            for (let i = 0; i < 2; i++) {
+              items.forEach((item) => {
+                const img =
+                  item.image ||
+                  "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150&auto=format&fit=crop&q=80";
+                const name = item.name || "Item";
+                html += `
+                  <div class="flex-shrink-0 w-36 luxury-glass p-2.5 rounded-2xl text-center space-y-2 border border-amber-500/30 shadow-lg">
+                    <img src="${img}" class="w-full h-28 rounded-xl object-cover shadow-md" alt="${name}">
+                    <h4 class="font-bold text-[11px] truncate text-slate-200">${name}</h4>
+                  </div>
+                `;
+              });
+            }
+            const marqueeContainer = document.getElementById(
+              "marquee-catalog-grid",
+            );
+            if (marqueeContainer) marqueeContainer.innerHTML = html;
+          }
+        } catch (e) {
+          console.log("Catalog ticker fallback loaded.");
+        }
+
+        // 2. Load Reels from Firestore with URL Converter
+        try {
+          const reelsSnap = await db.collection("reels_rows").get();
+          let reelsHtml = "";
+          let count = 0;
+          reelsSnap.forEach((doc) => {
+            const r = doc.data();
+            if (r.video_url && count < 4) {
+              let embedUrl = r.video_url;
+              if (embedUrl.includes("watch?v=")) {
+                embedUrl = embedUrl.replace("watch?v=", "embed/");
+              } else if (embedUrl.includes("youtu.be/")) {
+                embedUrl = embedUrl.replace(
+                  "youtu.be/",
+                  "www.youtube.com/embed/",
+                );
+              } else if (embedUrl.includes("/shorts/")) {
+                embedUrl = embedUrl.replace("/shorts/", "/embed/");
+              }
+
+              reelsHtml += `
+                <div class="relative aspect-[9/16] rounded-2xl overflow-hidden border border-amber-500/30 shadow-xl bg-slate-950">
+                  <iframe src="${embedUrl}" class="w-full h-full object-cover" frameborder="0" allowfullscreen></iframe>
+                </div>`;
+              count++;
+            }
+          });
+          if (reelsHtml !== "") {
+            document.getElementById("landing-reels-grid").innerHTML = reelsHtml;
+          } else {
+            document.getElementById("landing-reels-grid").innerHTML =
+              `<div class="col-span-4 text-center py-6 text-xs text-slate-400">No reels added yet. Use Admin Hub to publish YouTube links!</div>`;
+          }
+        } catch (e) {
+          console.log("Error loading reels:", e);
+        }
+      });
+    </script>
+  </body>
+</html>

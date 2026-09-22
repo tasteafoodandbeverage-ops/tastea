@@ -1,0 +1,2866 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tastea Admin Hub - Mini ERP Master Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        --bg-main: #030712;
+        --bg-card: #111827;
+        --bg-table-th: #1f2937;
+        --border-color: rgba(245, 158, 11, 0.2);
+        --text-main: #f3f4f6;
+        --text-sub: #9ca3af;
+        --accent: #fbbf24;
+      }
+      .light-mode {
+        --bg-main: #f3f4f6;
+        --bg-card: #ffffff;
+        --bg-table-th: #e5e7eb;
+        --border-color: rgba(245, 158, 11, 0.4);
+        --text-main: #030712;
+        --text-sub: #4b5563;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        transition:
+          background 0.3s,
+          color 0.3s;
+      }
+      .header {
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .nav-tabs {
+        display: flex;
+        gap: 8px;
+        background: var(--bg-card);
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        overflow-x: auto;
+      }
+      .nav-btn {
+        background: var(--bg-table-th);
+        color: var(--text-main);
+        border: none;
+        padding: 8px 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .nav-btn.active {
+        background: #fbbf24;
+        color: #030712;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          border-color 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        border-color: #fbbf24;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-card);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 13px;
+        color: var(--text-main);
+      }
+      th {
+        background: var(--bg-table-th);
+        color: #fbbf24;
+      }
+      button {
+        background: #fbbf24;
+        color: #030712;
+        border: none;
+        padding: 8px 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none !important;
+      }
+      input,
+      select {
+        background: var(--bg-table-th);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 16px;
+      }
+      .modal-content {
+        background: var(--bg-card);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        width: 100%;
+        max-width: 750px;
+        padding: 24px;
+        border-radius: 16px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      }
+      .filter-btn {
+        background: var(--bg-table-th);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .filter-btn.active {
+        background: #fbbf24;
+        color: #030712;
+        border-color: #fbbf24;
+      }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  </head>
+  <body>
+    <!-- Divine Audio Player (Kantha Sashti Kavasam Chant) -->
+    <audio id="divine-audio" loop autoplay>
+      <source src="kantha_sashti_kavasam.mp3" type="audio/mp3" />
+    </audio>
+
+    <div class="header">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div>
+          <h1 style="margin: 0; font-size: 16px; color: #fbbf24">
+            TASTEA ADMIN HUB (MINI ERP)
+          </h1>
+          <p
+            id="running-date-clock"
+            style="margin: 0; font-size: 11px; opacity: 0.7"
+          >
+            Loading date & time...
+          </p>
+        </div>
+      </div>
+      <div
+        style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap"
+      >
+        <button
+          id="kitchen-status-btn"
+          onclick="toggleKitchenMasterState()"
+          style="
+            background: #34d399;
+            color: #030712;
+            padding: 8px 12px;
+            font-size: 11px;
+            border-radius: 8px;
+            font-weight: bold;
+          "
+        >
+          🟢 Kitchen: OPEN
+        </button>
+        <button
+          id="divine-audio-btn"
+          onclick="toggleDivineAudio()"
+          style="
+            background: #34d399;
+            color: #030712;
+            padding: 8px 12px;
+            font-size: 11px;
+            border-radius: 8px;
+            font-weight: bold;
+          "
+        >
+          🔊 Vel Audio: ON
+        </button>
+        <button
+          onclick="toggleThemeMode()"
+          title="Toggle Dark/Light Mode"
+          style="
+            background: var(--bg-table-th);
+            color: var(--text-main);
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 8px;
+          "
+        >
+          <span id="theme-icon">🌙</span>
+        </button>
+        <button onclick="refreshAllData()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button
+        onclick="switchTab('dashboard')"
+        id="btn-tab-dashboard"
+        class="nav-btn active"
+      >
+        📊 Dashboard
+      </button>
+      <button onclick="switchTab('orders')" id="btn-tab-orders" class="nav-btn">
+        ⚡ Live Orders
+      </button>
+      <button
+        onclick="switchTab('kitchen')"
+        id="btn-tab-kitchen"
+        class="nav-btn"
+      >
+        🔥 Live Kitchen
+      </button>
+      <button
+        onclick="switchTab('dispatch')"
+        id="btn-tab-dispatch"
+        class="nav-btn"
+      >
+        🚚 Live Dispatch
+      </button>
+      <button onclick="switchTab('crm')" id="btn-tab-crm" class="nav-btn">
+        👥 CRM & Ledger
+      </button>
+      <button
+        onclick="switchTab('buildings')"
+        id="btn-tab-buildings"
+        class="nav-btn"
+      >
+        🏢 Buildings & QR
+      </button>
+      <button onclick="switchTab('menu')" id="btn-tab-menu" class="nav-btn">
+        🍲 Master Catalog
+      </button>
+      <button onclick="switchTab('social')" id="btn-tab-social" class="nav-btn">
+        📱 Social & Reels
+      </button>
+    </div>
+
+    <div class="container">
+      <!-- DASHBOARD TAB -->
+      <div id="tab-dashboard">
+        <div class="grid">
+          <div class="card" onclick="filterDashboardDrill('all')">
+            <p style="margin: 0; font-size: 11px; opacity: 0.6">
+              TOTAL ORDERS (CLICK)
+            </p>
+            <h3 id="stat-total-orders" style="margin: 5px 0 0; font-size: 24px">
+              0
+            </h3>
+          </div>
+          <div class="card" onclick="filterDashboardDrill('instant')">
+            <p style="margin: 0; font-size: 11px; opacity: 0.6">
+              INSTANT HOTEL (CLICK)
+            </p>
+            <h3
+              id="stat-instant-orders"
+              style="margin: 5px 0 0; font-size: 24px; color: #fbbf24"
+            >
+              0
+            </h3>
+          </div>
+          <div class="card" onclick="filterDashboardDrill('scheduled')">
+            <p style="margin: 0; font-size: 11px; opacity: 0.6">
+              CORPORATE (CLICK)
+            </p>
+            <h3
+              id="stat-scheduled-orders"
+              style="margin: 5px 0 0; font-size: 24px; color: #60a5fa"
+            >
+              0
+            </h3>
+          </div>
+          <div class="card" onclick="openFinancialBreakdownModal('revenue')">
+            <p style="margin: 0; font-size: 11px; opacity: 0.6">
+              TOTAL REVENUE (CLICK)
+            </p>
+            <h3
+              id="stat-total-revenue"
+              style="margin: 5px 0 0; font-size: 24px; color: #fbbf24"
+            >
+              ₹0
+            </h3>
+          </div>
+          <div class="card" onclick="openFinancialBreakdownModal('dues')">
+            <p style="margin: 0; font-size: 11px; opacity: 0.6">
+              PENDING DUES (CLICK)
+            </p>
+            <h3
+              id="stat-pending-dues"
+              style="margin: 5px 0 0; font-size: 24px; color: #f87171"
+            >
+              ₹0
+            </h3>
+          </div>
+        </div>
+
+        <div class="card" style="cursor: default">
+          <h3
+            id="dashboard-drill-title"
+            style="margin-top: 0; color: #818cf8; font-size: 14px"
+          >
+            ⏰ Quick Filter View (Click above cards to inspect)
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Building / Location</th>
+                <th>Customer</th>
+                <th>Items Summary</th>
+                <th>Total</th>
+                <th>Payment Status</th>
+                <th>Status / Action</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-drill-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; opacity: 0.6">
+                  Click any summary card above to view filtered orders here.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIVE ORDERS TAB -->
+      <div id="tab-orders" class="hidden">
+        <div class="card" style="cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <div>
+              <h3 style="margin: 0; color: #fbbf24; font-size: 14px">
+                ⚡ Today's Live Incoming Orders Desk
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7">
+                Showing orders placed strictly for today.
+              </p>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap">
+              <button
+                onclick="filterOrders('today')"
+                id="ord-filter-today"
+                class="filter-btn active"
+              >
+                Today's All
+              </button>
+              <button
+                onclick="filterOrders('instant')"
+                id="ord-filter-instant"
+                class="filter-btn"
+              >
+                Instant
+              </button>
+              <button
+                onclick="filterOrders('scheduled')"
+                id="ord-filter-scheduled"
+                class="filter-btn"
+              >
+                Scheduled
+              </button>
+              <button
+                onclick="filterOrders('pending')"
+                id="ord-filter-pending"
+                class="filter-btn"
+              >
+                Pending
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Building / Location</th>
+                <th>Customer</th>
+                <th>Items Summary</th>
+                <th>Total</th>
+                <th>Payment Status</th>
+                <th>Status / Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; opacity: 0.6">
+                  Loading today's live orders...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIVE KITCHEN TAB -->
+      <div id="tab-kitchen" class="hidden">
+        <div class="card" style="cursor: default">
+          <h3 style="margin-top: 0; color: #fbbf24; font-size: 14px">
+            🔥 Today's Live Kitchen & Production Batch Roster
+          </h3>
+          <p style="font-size: 12px; opacity: 0.7; margin-bottom: 16px">
+            Item-wise total quantities required strictly for today's active
+            production.
+          </p>
+          <div
+            id="kitchen-batch-grid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+              gap: 12px;
+            "
+          >
+            <div
+              style="
+                grid-column: 1/-1;
+                padding: 16px;
+                text-align: center;
+                opacity: 0.6;
+                font-size: 13px;
+              "
+            >
+              Calculating today's kitchen batches...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE DISPATCH TAB -->
+      <div id="tab-dispatch" class="hidden">
+        <div class="card" style="cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <div>
+              <h3 style="margin: 0; color: #fbbf24; font-size: 14px">
+                🚚 Live Dispatch & Building Delivery Sheets
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7">
+                Generate name-wise handover sheets and individual hotel bills
+                for delivery.
+              </p>
+            </div>
+          </div>
+          <div
+            id="dispatch-building-cards-grid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+              gap: 14px;
+            "
+          >
+            <p
+              style="
+                font-size: 12px;
+                opacity: 0.6;
+                text-align: center;
+                padding: 20px;
+              "
+            >
+              Loading building dispatch batches...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CRM & COMPANY LEDGER TAB -->
+      <div id="tab-crm" class="hidden">
+        <div class="card" style="cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <div>
+              <h3 style="margin: 0; color: #fbbf24; font-size: 14px">
+                👥 CRM, Company Wise & Ledger Statement
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7">
+                Monitor customers, company affiliations, credit limits,
+                block/delete & WhatsApp billing histories.
+              </p>
+            </div>
+            <div
+              style="
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+              "
+            >
+              <select
+                id="crm-company-dropdown"
+                onchange="filterCrmByCompany()"
+                style="width: 160px; padding: 6px; font-size: 11px"
+              >
+                <option value="all">All Companies</option>
+              </select>
+              <button
+                onclick="filterCrm('all')"
+                id="crm-filter-all"
+                class="filter-btn active"
+              >
+                All
+              </button>
+              <button
+                onclick="filterCrm('dues')"
+                id="crm-filter-dues"
+                class="filter-btn"
+              >
+                Pending Dues
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Customer Name / Phone</th>
+                <th>Company / Building</th>
+                <th>Enrolled Date</th>
+                <th>Credit Limit</th>
+                <th>Unpaid Dues</th>
+                <th style="text-align: center">Actions, Ledger & WhatsApp</th>
+              </tr>
+            </thead>
+            <tbody id="crm-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; opacity: 0.6">
+                  Loading CRM records from database...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BUILDINGS & QR CODES TAB -->
+      <div id="tab-buildings" class="hidden">
+        <div class="card" style="cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <div>
+              <h3 style="margin: 0; color: #fbbf24; font-size: 14px">
+                🏢 Campus Buildings, Cut-off, Delivery Times & QR Hub
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7">
+                Configure buildings with cut-off/delivery timings and generate
+                QR codes.
+              </p>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center">
+              <div style="display: flex; gap: 4px; margin-right: 6px">
+                <button
+                  onclick="filterBuildings('all')"
+                  id="bldg-filter-all"
+                  class="filter-btn active"
+                >
+                  All
+                </button>
+                <button
+                  onclick="filterBuildings('scheduled')"
+                  id="bldg-filter-scheduled"
+                  class="filter-btn"
+                >
+                  Corporate
+                </button>
+                <button
+                  onclick="filterBuildings('instant')"
+                  id="bldg-filter-instant"
+                  class="filter-btn"
+                >
+                  Hotels
+                </button>
+              </div>
+              <button onclick="openBuildingModal()">➕ Add Building</button>
+            </div>
+          </div>
+          <div id="buildings-list-grid" style="display: grid; gap: 12px">
+            <div
+              style="
+                padding: 16px;
+                text-align: center;
+                opacity: 0.6;
+                font-size: 13px;
+              "
+            >
+              Loading buildings from database...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER CATALOG TAB -->
+      <div id="tab-menu" class="hidden">
+        <div class="card" style="cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <div>
+              <h3 style="margin: 0; color: #fbbf24; font-size: 14px">
+                🍲 Master Catalog & Daily Assignments
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7">
+                Manage catalog items, assign for today, and broadcast
+                category-wise menu with timings.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                onclick="broadcastTodaysMenuWhatsApp()"
+                style="background: #25d366; color: #ffffff; font-weight: 900"
+              >
+                📢 Broadcast Today's Menu
+              </button>
+              <button onclick="openMenuItemModal()">➕ Add Master Item</button>
+            </div>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              margin-bottom: 16px;
+              flex-wrap: wrap;
+              border-bottom: 1px solid var(--border-color);
+              padding-bottom: 12px;
+            "
+          >
+            <span
+              style="
+                font-size: 11px;
+                font-weight: bold;
+                align-self: center;
+                opacity: 0.7;
+                margin-right: 6px;
+              "
+              >Filter By:</span
+            >
+            <button
+              onclick="filterCatalog('all')"
+              id="filter-btn-all"
+              class="filter-btn active"
+            >
+              All Items
+            </button>
+            <button
+              onclick="filterCatalog('Snack')"
+              id="filter-btn-Snack"
+              class="filter-btn"
+            >
+              Snacks
+            </button>
+            <button
+              onclick="filterCatalog('Beverage')"
+              id="filter-btn-Beverage"
+              class="filter-btn"
+            >
+              Beverages
+            </button>
+            <button
+              onclick="filterCatalog('Food')"
+              id="filter-btn-Food"
+              class="filter-btn"
+            >
+              Food
+            </button>
+            <button
+              onclick="filterCatalog('special')"
+              id="filter-btn-special"
+              class="filter-btn"
+              style="color: #fbbf24"
+            >
+              🟢 Active Today
+            </button>
+          </div>
+
+          <div
+            id="master-menu-grid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+              gap: 14px;
+            "
+          >
+            <div
+              style="
+                grid-column: 1/-1;
+                padding: 16px;
+                text-align: center;
+                opacity: 0.6;
+                font-size: 13px;
+              "
+            >
+              Loading catalog items...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOCIAL & REELS MANAGER TAB -->
+      <div id="tab-social" class="hidden">
+        <div class="card" style="max-width: 600px; margin: 0 auto">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              border-bottom: 1px solid var(--border-color);
+              padding-bottom: 12px;
+              margin-bottom: 16px;
+            "
+          >
+            <div
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: rgba(245, 158, 11, 0.2);
+                color: #fbbf24;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+              "
+            >
+              📹
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 14px; color: #fbbf24">
+                Reels & Social Media Manager
+              </h3>
+              <p style="margin: 2px 0 0; font-size: 11px; opacity: 0.7">
+                Publish YouTube Shorts/Video URLs directly to Landing Page
+              </p>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 14px">
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Reel Title / Description</label
+              >
+              <input
+                type="text"
+                id="admin-reel-title"
+                placeholder="Special Tea Brewing Reel"
+              />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >YouTube Embed URL</label
+              >
+              <input
+                type="url"
+                id="admin-reel-url"
+                placeholder="https://www.youtube.com/embed/..."
+              />
+            </div>
+            <button
+              onclick="saveReelLinkToFirestore()"
+              style="
+                width: 100%;
+                background: #fbbf24;
+                color: #030712;
+                font-weight: 900;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+              "
+            >
+              Publish Reel to Landing Page 🚀
+            </button>
+          </div>
+
+          <div
+            style="
+              margin-top: 24px;
+              border-top: 1px solid var(--border-color);
+              padding-top: 16px;
+            "
+          >
+            <h4 style="margin: 0 0 10px; font-size: 13px; color: #fbbf24">
+              📺 Currently Published Reels
+            </h4>
+            <div id="admin-reels-list" style="display: grid; gap: 8px">
+              <p style="font-size: 11px; opacity: 0.6">
+                Loading published reels...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CODE GENERATOR MODAL -->
+    <div id="qrGeneratorModal" class="modal hidden">
+      <div class="modal-content" style="max-width: 500px; text-align: center">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <h3
+            id="qr-modal-title"
+            style="margin: 0; color: #fbbf24; font-size: 15px"
+          >
+            🔲 Raw QR Code Generator
+          </h3>
+          <button
+            onclick="
+              document
+                .getElementById('qrGeneratorModal')
+                .classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          style="
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+            text-align: left;
+          "
+        >
+          <div>
+            <label
+              style="
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                opacity: 0.7;
+                margin-bottom: 4px;
+              "
+              >Floor / Location / Level (Optional)</label
+            >
+            <input
+              type="text"
+              id="qr-line1-input"
+              placeholder="e.g. First Floor / Pantry"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                opacity: 0.7;
+                margin-bottom: 4px;
+              "
+              >Room / Block / Desk Number (Optional)</label
+            >
+            <input
+              type="text"
+              id="qr-line2-input"
+              placeholder="e.g. Room 101 / Block A"
+            />
+          </div>
+          <button
+            onclick="generateRawQRCode()"
+            style="
+              background: #fbbf24;
+              color: #030712;
+              font-weight: 900;
+              padding: 10px;
+            "
+          >
+            Generate QR Code
+          </button>
+        </div>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-main);
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+          "
+        >
+          <div
+            id="qrcode-render-box"
+            style="
+              background: white;
+              padding: 12px;
+              border-radius: 8px;
+              display: inline-block;
+            "
+          ></div>
+          <p
+            id="qr-render-label"
+            style="
+              margin: 0;
+              font-size: 12px;
+              font-weight: bold;
+              color: #fbbf24;
+            "
+          ></p>
+          <button
+            onclick="downloadRawQRCode()"
+            style="
+              background: #34d399;
+              color: #030712;
+              font-weight: 900;
+              padding: 8px 16px;
+              font-size: 12px;
+            "
+          >
+            📥 Download Raw QR Image
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUILDING DISPATCH MODAL -->
+    <div id="buildingDispatchModal" class="modal hidden">
+      <div class="modal-content" style="max-width: 650px">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <h3
+              id="dispatch-modal-building-name"
+              style="margin: 0; color: #fbbf24; font-size: 16px"
+            >
+              🚚 Dispatch Sheet / Bill
+            </h3>
+            <p
+              id="dispatch-modal-subtitle"
+              style="margin: 2px 0 0; font-size: 11px; opacity: 0.7"
+            >
+              Handover List
+            </p>
+          </div>
+          <button
+            onclick="
+              document
+                .getElementById('buildingDispatchModal')
+                .classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          id="dispatch-modal-body"
+          style="
+            max-height: 380px;
+            overflow-y: auto;
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <p
+            style="
+              font-size: 12px;
+              opacity: 0.6;
+              text-align: center;
+              padding: 20px;
+            "
+          >
+            Loading dispatch items...
+          </p>
+        </div>
+        <div
+          style="
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span style="font-size: 11px; opacity: 0.7"
+            >Tastea Admin Hub - Official Print</span
+          >
+          <button
+            onclick="window.print()"
+            style="
+              background: #fbbf24;
+              color: #030712;
+              padding: 8px 16px;
+              font-size: 12px;
+            "
+          >
+            🖨️ Print Sheet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCIAL BREAKDOWN MODAL -->
+    <div id="financialBreakdownModal" class="modal hidden">
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+          "
+        >
+          <div>
+            <h3
+              id="financial-modal-title"
+              style="margin: 0; color: #fbbf24; font-size: 15px"
+            >
+              💰 Financial Breakdown
+            </h3>
+            <p
+              id="financial-modal-subtitle"
+              style="margin: 2px 0 0; font-size: 11px; opacity: 0.7"
+            >
+              Revenue & Dues Analysis
+            </p>
+          </div>
+          <button
+            onclick="
+              document
+                .getElementById('financialBreakdownModal')
+                .classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            background: var(--bg-main);
+            padding: 6px;
+            border-radius: 8px;
+          "
+        >
+          <button
+            onclick="switchFinancialRange('daily')"
+            id="fin-range-daily"
+            class="filter-btn"
+            style="flex: 1"
+          >
+            Daily
+          </button>
+          <button
+            onclick="switchFinancialRange('weekly')"
+            id="fin-range-weekly"
+            class="filter-btn"
+            style="flex: 1"
+          >
+            Weekly
+          </button>
+          <button
+            onclick="switchFinancialRange('monthly')"
+            id="fin-range-monthly"
+            class="filter-btn"
+            style="flex: 1"
+          >
+            Monthly
+          </button>
+          <button
+            onclick="switchFinancialRange('all')"
+            id="fin-range-all"
+            class="filter-btn active"
+            style="flex: 1"
+          >
+            All-Time
+          </button>
+        </div>
+        <div
+          id="financial-modal-body"
+          style="
+            max-height: 320px;
+            overflow-y: auto;
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <p
+            style="
+              font-size: 12px;
+              opacity: 0.6;
+              text-align: center;
+              padding: 20px;
+            "
+          >
+            Calculating financial metrics...
+          </p>
+        </div>
+        <button
+          onclick="
+            document
+              .getElementById('financialBreakdownModal')
+              .classList.add('hidden')
+          "
+          style="width: 100%; background: #374151; color: white"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- CUSTOMER BILLING STATEMENT MODAL -->
+    <div id="billingStatementModal" class="modal hidden">
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <h3
+              id="statement-customer-name"
+              style="margin: 0; color: #fbbf24; font-size: 15px"
+            >
+              📜 Customer Billing Statement
+            </h3>
+            <p
+              id="statement-customer-phone"
+              style="margin: 2px 0 0; font-size: 11px; opacity: 0.7"
+            >
+              Phone: --
+            </p>
+          </div>
+          <button
+            onclick="
+              document
+                .getElementById('billingStatementModal')
+                .classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          id="statement-items-container"
+          style="
+            max-height: 350px;
+            overflow-y: auto;
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+          "
+        >
+          <p
+            style="
+              font-size: 12px;
+              opacity: 0.6;
+              text-align: center;
+              padding: 20px;
+            "
+          >
+            Loading purchase history...
+          </p>
+        </div>
+        <div
+          style="
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span style="font-size: 12px; font-weight: bold; opacity: 0.8"
+            >Total Unpaid Dues:</span
+          >
+          <span
+            id="statement-total-due-amt"
+            style="font-size: 16px; font-weight: 900; color: #f87171"
+            >₹0</span
+          >
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 14px">
+          <button
+            onclick="sendStatementViaWhatsApp()"
+            style="
+              flex: 1;
+              background: #25d366;
+              color: #ffffff;
+              font-weight: bold;
+            "
+          >
+            💬 Send via WhatsApp
+          </button>
+          <button
+            onclick="window.print()"
+            style="flex: 1; background: #374151; color: white"
+          >
+            🖨️ Print Statement
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD/EDIT BUILDING MODAL (With Cut-off, Delivery Time & Charges) -->
+    <div id="buildingModal" class="modal hidden">
+      <div class="modal-content" style="max-width: 750px">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <h3
+            id="building-modal-title"
+            style="margin: 0; color: #fbbf24; font-size: 15px"
+          >
+            🏢 Add Master Building
+          </h3>
+          <button
+            onclick="
+              document.getElementById('buildingModal').classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <input type="hidden" id="edit-building-id" />
+        <div style="display: grid; gap: 14px">
+          <div>
+            <label
+              style="
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                opacity: 0.7;
+                margin-bottom: 4px;
+              "
+              >Building Name</label
+            >
+            <input
+              type="text"
+              id="b-name-input"
+              placeholder="e.g. Tower A / Grand Hotel"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Pincode</label
+              >
+              <input type="text" id="b-pincode-input" placeholder="627001" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Service Mode</label
+              >
+              <select id="b-mode-input" onchange="toggleBuildingModeFields()">
+                <option value="scheduled">Scheduled Corporate</option>
+                <option value="instant">Instant Hotel (Room Service)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- SCHEDULED TIMINGS -->
+          <div
+            id="scheduled-timing-fields"
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px"
+          >
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Cut-off Time</label
+              >
+              <input type="text" id="b-closed-time" placeholder="11:00" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Delivery Time</label
+              >
+              <input type="text" id="b-delivery-time" placeholder="11:30" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Delivery Fee (₹)</label
+              >
+              <input type="number" id="b-delivery-charge" value="0" />
+            </div>
+          </div>
+
+          <!-- INSTANT TIMINGS -->
+          <div
+            id="instant-timing-fields"
+            class="hidden"
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px"
+          >
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Open Time</label
+              >
+              <input type="text" id="b-open-time" placeholder="18:00" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Close Time</label
+              >
+              <input type="text" id="b-close-time" placeholder="22:00" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 10px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Delivery Fee (₹)</label
+              >
+              <input type="number" id="b-instant-charge" value="0" />
+            </div>
+          </div>
+
+          <div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+              "
+            >
+              <label style="font-size: 11px; font-weight: bold; opacity: 0.7"
+                >Building Offer Prices for Master Items</label
+              >
+              <div style="display: flex; gap: 4px">
+                <button
+                  type="button"
+                  onclick="filterBuildingModalItems('all')"
+                  id="bldg-modal-cat-all"
+                  class="filter-btn active"
+                  style="padding: 2px 8px; font-size: 10px"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onclick="filterBuildingModalItems('Snack')"
+                  id="bldg-modal-cat-snack"
+                  class="filter-btn"
+                  style="padding: 2px 8px; font-size: 10px"
+                >
+                  Snacks
+                </button>
+                <button
+                  type="button"
+                  onclick="filterBuildingModalItems('Beverage')"
+                  id="bldg-modal-cat-bev"
+                  class="filter-btn"
+                  style="padding: 2px 8px; font-size: 10px"
+                >
+                  Beverages
+                </button>
+                <button
+                  type="button"
+                  onclick="filterBuildingModalItems('Food')"
+                  id="bldg-modal-cat-food"
+                  class="filter-btn"
+                  style="padding: 2px 8px; font-size: 10px"
+                >
+                  Food
+                </button>
+              </div>
+            </div>
+            <div
+              id="building-prices-assignment-container"
+              style="
+                max-height: 220px;
+                overflow-y: auto;
+                border: 1px solid var(--border-color);
+                padding: 10px;
+                border-radius: 8px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                background: var(--bg-main);
+              "
+            >
+              <p
+                style="
+                  font-size: 11px;
+                  opacity: 0.6;
+                  margin: 0;
+                  grid-column: 1/-1;
+                  text-align: center;
+                "
+              >
+                Loading catalog items...
+              </p>
+            </div>
+          </div>
+          <button
+            onclick="saveMasterBuilding()"
+            style="width: 100%; margin-top: 6px; padding: 12px"
+          >
+            Save Master Building
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD/EDIT MENU ITEM MODAL -->
+    <div id="menuItemModal" class="modal hidden">
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <h3
+            id="menu-modal-title"
+            style="margin: 0; color: #fbbf24; font-size: 14px"
+          >
+            🍲 Add New Catalog Item
+          </h3>
+          <button
+            onclick="
+              document.getElementById('menuItemModal').classList.add('hidden')
+            "
+            style="background: transparent; color: #9ca3af; padding: 4px 8px"
+          >
+            ✕
+          </button>
+        </div>
+        <input type="hidden" id="edit-item-id" />
+        <div style="display: grid; gap: 12px">
+          <div>
+            <label
+              style="
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                opacity: 0.7;
+                margin-bottom: 4px;
+              "
+              >Item Name</label
+            >
+            <input
+              type="text"
+              id="item-name-input"
+              placeholder="e.g. Chicken Samosa"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Base Price (₹)</label
+              >
+              <input type="number" id="item-price-input" placeholder="30" />
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Dietary</label
+              >
+              <select id="item-dietary-input">
+                <option value="Veg">Veg (No Oil / Boil)</option>
+                <option value="Non-Veg">Non-Veg (Chicken)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Category</label
+              >
+              <select id="item-category-input">
+                <option value="Snack">Snacks</option>
+                <option value="Beverage">Beverages</option>
+                <option value="Food">Food</option>
+              </select>
+            </div>
+            <div>
+              <label
+                style="
+                  display: block;
+                  font-size: 11px;
+                  font-weight: bold;
+                  opacity: 0.7;
+                  margin-bottom: 4px;
+                "
+                >Target Service</label
+              >
+              <select id="item-target-mode">
+                <option value="both">Both (Instant & Scheduled)</option>
+                <option value="instant">Instant Hotel Only</option>
+                <option value="scheduled">Scheduled Corporate Only</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label
+              style="
+                display: block;
+                font-size: 11px;
+                font-weight: bold;
+                opacity: 0.7;
+                margin-bottom: 4px;
+              "
+              >Image URL</label
+            >
+            <input
+              type="url"
+              id="item-image-input"
+              placeholder="https://images.unsplash.com/..."
+            />
+          </div>
+          <button
+            onclick="saveCatalogItem()"
+            style="width: 100%; margin-top: 6px"
+          >
+            Save Catalog Item
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCggBRdVQqEsVX6pOnackOcCLr5RMXmebc",
+        authDomain: "tastea-food-and-beverage.firebaseapp.com",
+        projectId: "tastea-food-and-beverage",
+        storageBucket: "tastea-food-and-beverage.firebasestorage.app",
+        messagingSenderId: "669318528715",
+        appId: "1:669318528715:web:421955e4a2cdff00de654e",
+        measurementId: "G-ZZ38SHY5X1",
+      };
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      let masterCatalogCache = [];
+      let currentCatalogFilter = "all";
+      let currentOrdersFilter = "today";
+      let currentCrmFilter = "all";
+      let currentBldgFilter = "all";
+      let currentFinancialRange = "all";
+      let currentModalCatFilter = "all";
+      let allOrdersCache = [];
+      let allCustomersCache = [];
+      let allBuildingsCache = [];
+      let allCatalogItemsForModal = [];
+      let currentBuildingForQR = "";
+      let activeCustomerPhoneForWhatsApp = "";
+      let activeCustomerNameForWhatsApp = "";
+      let activeCustomerDueForWhatsApp = 0;
+      let kitchenMasterState = true; // true = OPEN, false = CLOSED
+
+      window.addEventListener("DOMContentLoaded", () => {
+        refreshAllData();
+        db.collection("orders_rows").onSnapshot(() => refreshDashboardData());
+        db.collection("customers_rows").onSnapshot(() => loadCRMData());
+        db.collection("buildings_rows").onSnapshot(() => loadMasterBuildings());
+        db.collection("menu_items_rows").onSnapshot(() => loadCatalogGrid());
+        db.collection("reels_rows").onSnapshot(() => loadAdminReelsList());
+      });
+
+      function refreshAllData() {
+        refreshDashboardData();
+        loadCRMData();
+        loadMasterBuildings();
+        loadCatalogGrid();
+        loadAdminReelsList();
+      }
+
+      function switchTab(tabId) {
+        [
+          "dashboard",
+          "orders",
+          "kitchen",
+          "dispatch",
+          "crm",
+          "buildings",
+          "menu",
+          "social",
+        ].forEach((t) => {
+          const tabElem = document.getElementById(`tab-${t}`);
+          const btnElem = document.getElementById(`btn-tab-${t}`);
+          if (tabElem) tabElem.classList.toggle("hidden", t !== tabId);
+          if (btnElem) btnElem.classList.toggle("active", t === tabId);
+        });
+        if (tabId === "buildings") loadMasterBuildings();
+        if (tabId === "menu") loadCatalogGrid();
+        if (tabId === "kitchen") renderLiveKitchenBatches();
+        if (tabId === "dispatch") renderLiveDispatchCards();
+        if (tabId === "social") loadAdminReelsList();
+      }
+
+      function toggleThemeMode() {
+        document.body.classList.toggle("light-mode");
+        const icon = document.getElementById("theme-icon");
+        icon.innerText = document.body.classList.contains("light-mode")
+          ? "☀️"
+          : "🌙";
+      }
+
+      // --- Kitchen Master Open/Close Toggle ---
+      function toggleKitchenMasterState() {
+        kitchenMasterState = !kitchenMasterState;
+        const btn = document.getElementById("kitchen-status-btn");
+        if (kitchenMasterState) {
+          btn.innerText = "🟢 Kitchen: OPEN";
+          btn.style.background = "#34d399";
+          alert("Kitchen is now OPEN for live orders!");
+        } else {
+          btn.innerText = "🔴 Kitchen: CLOSED";
+          btn.style.background = "#ef4444";
+          alert("Kitchen is now CLOSED. Incoming orders are halted.");
+        }
+      }
+
+      // --- Divine Audio Player State ---
+      let isAudioPlaying = true;
+      function toggleDivineAudio() {
+        const audio = document.getElementById("divine-audio");
+        const btn = document.getElementById("divine-audio-btn");
+        if (isAudioPlaying) {
+          audio.pause();
+          isAudioPlaying = false;
+          btn.innerText = "📿 Vel Audio: OFF";
+          btn.style.background = "#f59e0b";
+        } else {
+          audio.play().catch((e) => console.log("Audio play prevented"));
+          isAudioPlaying = true;
+          btn.innerText = "🔊 Vel Audio: ON";
+          btn.style.background = "#34d399";
+        }
+      }
+
+      function toggleBuildingModeFields() {
+        const mode = document.getElementById("b-mode-input").value;
+        const scheduledDiv = document.getElementById("scheduled-timing-fields");
+        const instantDiv = document.getElementById("instant-timing-fields");
+        if (mode === "instant") {
+          scheduledDiv.classList.add("hidden");
+          instantDiv.classList.remove("hidden");
+        } else {
+          instantDiv.classList.add("hidden");
+          scheduledDiv.classList.remove("hidden");
+        }
+      }
+
+      function calculateOrderTotal(order) {
+        if (order.total_amount !== undefined && order.total_amount !== null)
+          return Number(order.total_amount);
+        if (order.total !== undefined && order.total !== null)
+          return Number(order.total);
+        if (order.amount !== undefined && order.amount !== null)
+          return Number(order.amount);
+        let itemsArr = [];
+        if (Array.isArray(order.items_json)) itemsArr = order.items_json;
+        else if (typeof order.items_json === "string") {
+          try {
+            itemsArr = JSON.parse(order.items_json);
+          } catch (e) {}
+        }
+        let calcTotal = 0;
+        itemsArr.forEach((i) => {
+          calcTotal +=
+            Number(i.price || i.basePrice || 0) *
+            Number(i.qty || i.quantity || 1);
+        });
+        return calcTotal;
+      }
+
+      function checkIsPayLater(order) {
+        const pStatus = String(
+          order.payment_status || order.paymentStatus || order.status || "",
+        ).toLowerCase();
+        const pMethod = String(
+          order.paymentMethod || order.payment_method || order.mode || "",
+        ).toLowerCase();
+        if (
+          pStatus === "paid" ||
+          pMethod.includes("razorpay") ||
+          pMethod.includes("upi") ||
+          pMethod.includes("online")
+        )
+          return false;
+        return (
+          pStatus.includes("due") ||
+          pStatus.includes("later") ||
+          pStatus.includes("credit") ||
+          pMethod.includes("credit") ||
+          (!pStatus && !pMethod)
+        );
+      }
+
+      function isToday(dateString) {
+        if (!dateString) return false;
+        const orderDate = new Date(dateString);
+        const today = new Date();
+        return (
+          orderDate.getDate() === today.getDate() &&
+          orderDate.getMonth() === today.getMonth() &&
+          orderDate.getFullYear() === today.getFullYear()
+        );
+      }
+
+      function isThisWeek(dateString) {
+        if (!dateString) return false;
+        return (
+          Math.abs(new Date() - new Date(dateString)) / (1000 * 60 * 60 * 24) <=
+          7
+        );
+      }
+
+      function isThisMonth(dateString) {
+        if (!dateString) return false;
+        const orderDate = new Date(dateString);
+        const today = new Date();
+        return (
+          orderDate.getMonth() === today.getMonth() &&
+          orderDate.getFullYear() === today.getFullYear()
+        );
+      }
+
+      async function refreshDashboardData() {
+        try {
+          const ordersSnap = await db.collection("orders_rows").get();
+          document.getElementById("stat-total-orders").innerText =
+            ordersSnap.size;
+
+          let totalRevenue = 0,
+            totalPendingDues = 0,
+            instantCount = 0,
+            scheduledCount = 0;
+          allOrdersCache = [];
+          ordersSnap.forEach((doc) => {
+            allOrdersCache.push({ id: doc.id, ...doc.data() });
+          });
+          allOrdersCache.sort(
+            (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0),
+          );
+
+          allOrdersCache.forEach((o) => {
+            const total = calculateOrderTotal(o);
+            totalRevenue += total;
+            if (checkIsPayLater(o) && total > 0) totalPendingDues += total;
+            if ((o.order_mode || "").toLowerCase() === "scheduled")
+              scheduledCount++;
+            else instantCount++;
+          });
+
+          document.getElementById("stat-instant-orders").innerText =
+            instantCount;
+          document.getElementById("stat-scheduled-orders").innerText =
+            scheduledCount;
+          document.getElementById("stat-total-revenue").innerText =
+            `₹${totalRevenue.toLocaleString("en-IN")}`;
+          document.getElementById("stat-pending-dues").innerText =
+            `₹${totalPendingDues.toLocaleString("en-IN")}`;
+
+          renderOrdersTableFiltered();
+          renderLiveKitchenBatches();
+          renderLiveDispatchCards();
+        } catch (e) {
+          console.log("Error loading dashboard data:", e);
+        }
+      }
+
+      async function markOrderAsDelivered(orderId) {
+        try {
+          await db
+            .collection("orders_rows")
+            .doc(orderId)
+            .update({ status: "delivered" });
+          refreshDashboardData();
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      }
+
+      function renderLiveDispatchCards() {
+        const grid = document.getElementById("dispatch-building-cards-grid");
+        if (!grid) return;
+        let buildingGroups = {},
+          instantOrders = [];
+
+        allOrdersCache.forEach((o) => {
+          if (
+            !isToday(o.created_at) ||
+            (o.status || "").toLowerCase() === "delivered"
+          )
+            return;
+          if (
+            (o.order_mode || "").toLowerCase() === "instant" ||
+            (o.buildingName || "").toLowerCase().includes("hotel")
+          ) {
+            instantOrders.push(o);
+          } else {
+            const bName = o.buildingName || "Main Office Desk";
+            if (!buildingGroups[bName]) buildingGroups[bName] = [];
+            buildingGroups[bName].push(o);
+          }
+        });
+
+        let html = "";
+        if (instantOrders.length > 0) {
+          html += `<div style="grid-column: 1/-1; background:var(--bg-card); padding:12px 16px; border-radius:10px; border-left:4px solid #fbbf24; font-weight:bold; font-size:13px; color:#fbbf24;">🏨 Instant Hotel Individual Bills</div>`;
+          instantOrders.forEach((o) => {
+            html += `
+              <div style="background:var(--bg-table-th); padding:14px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; border:1px solid var(--border-color);">
+                <div>
+                  <h4 style="margin:0; font-size:13px;">${o.guestName || o.name || "Guest"} <span style="font-size:10px; opacity:0.6;">(${o.phone || ""})</span></h4>
+                  <p style="margin:2px 0 0; font-size:11px; color:#fbbf24;">Total: ₹${calculateOrderTotal(o)} • ${o.buildingName || "Hotel"}</p>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <button onclick="markOrderAsDelivered('${o.id}')" style="padding:6px 10px; font-size:11px; background:#34d399; color:#030712; border-radius:6px;">✓ Deliver</button>
+                  <button onclick="openInstantHotelBill('${o.id}')" style="padding:6px 12px; font-size:11px; background:#fbbf24; color:#030712; font-weight:900; border-radius:6px;">🖨️ Bill</button>
+                </div>
+              </div>`;
+          });
+        }
+
+        Object.keys(buildingGroups).forEach((bName) => {
+          const orders = buildingGroups[bName];
+          html += `
+            <div style="background:var(--bg-table-th); padding:16px; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; border:1px solid rgba(245,158,11,0.3);">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <h4 style="margin:0; font-size:15px; color:#fbbf24;">🏢 ${bName}</h4>
+                  <span style="background:rgba(52,211,153,0.2); color:#34d399; font-size:10px; font-weight:bold; padding:2px 8px; border-radius:4px;">${orders.length} Orders</span>
+                </div>
+                <p style="margin:0; font-size:11px; opacity:0.7;">Corporate Master Handover Sign-off Sheet.</p>
+              </div>
+              <button onclick="openBuildingDispatchSheet('${bName.replace(/'/g, "\\'")}')" style="width:100%; padding:8px; font-size:12px; background:#fbbf24; color:#030712; font-weight:900; border-radius:8px;">📜 Print Master Sheet</button>
+            </div>`;
+        });
+        grid.innerHTML =
+          html ||
+          `<p style="font-size:12px; opacity:0.6; text-align:center; padding: 20px; grid-column:1/-1;">No active delivery batches for today.</p>`;
+      }
+
+      function openBuildingDispatchSheet(buildingName) {
+        document.getElementById("dispatch-modal-building-name").innerText =
+          `🚚 Master Handover Sheet: ${buildingName}`;
+        document.getElementById("dispatch-modal-subtitle").innerText =
+          `Today's Name-wise Handover List (${new Date().toLocaleDateString()})`;
+        const bodyEl = document.getElementById("dispatch-modal-body");
+        bodyEl.innerHTML = `<p style="font-size:12px; opacity:0.6; text-align:center; padding: 20px;">Generating sheet...</p>`;
+        document
+          .getElementById("buildingDispatchModal")
+          .classList.remove("hidden");
+
+        let orders = allOrdersCache.filter(
+          (o) =>
+            isToday(o.created_at) &&
+            (o.buildingName || "Main Office Desk") === buildingName &&
+            (o.status || "").toLowerCase() !== "delivered",
+        );
+        let sheetHtml = `<table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr style="background:#111827; color:#fbbf24;"><th style="padding:8px; border:1px solid #374151;">Customer / Phone</th><th style="padding:8px; border:1px solid #374151;">Floor / Room</th><th style="padding:8px; border:1px solid #374151;">Items Ordered</th><th style="padding:8px; border:1px solid #374151; text-align:center;">Sign-off</th></tr></thead><tbody>`;
+
+        orders.forEach((o) => {
+          let itemsArr = [];
+          if (Array.isArray(o.items_json)) itemsArr = o.items_json;
+          else if (typeof o.items_json === "string") {
+            try {
+              itemsArr = JSON.parse(o.items_json);
+            } catch (e) {}
+          }
+          let itemsStr = itemsArr
+            .map((i) => `${i.name || "Item"} (x${i.qty || 1})`)
+            .join(", ");
+          const locStr =
+            [
+              o.blockNo,
+              o.floorNo ? `Flr ${o.floorNo}` : "",
+              o.roomNumber ? `Rm ${o.roomNumber}` : "",
+            ]
+              .filter(Boolean)
+              .join(" • ") || "Main";
+
+          sheetHtml += `<tr><td style="padding:8px; border:1px solid #374151;"><strong>${o.guestName || o.name || "Guest"}</strong><br/><span style="font-size:10px; opacity:0.6;">${o.phone || ""}</span></td><td style="padding:8px; border:1px solid #374151;">${locStr}</td><td style="padding:8px; border:1px solid #374151;">${itemsStr}</td><td style="padding:8px; border:1px solid #374151; text-align:center; font-size:10px; opacity:0.6;">[ Handed Over ]</td></tr>`;
+        });
+        sheetHtml += `</tbody></table>`;
+        bodyEl.innerHTML =
+          sheetHtml ||
+          `<p style="font-size:12px; opacity:0.6; text-align:center; padding: 20px;">No pending orders.</p>`;
+      }
+
+      function openInstantHotelBill(orderId) {
+        const order = allOrdersCache.find((o) => o.id === orderId);
+        if (!order) return;
+        document.getElementById("dispatch-modal-building-name").innerText =
+          `🏨 Hotel Room Service Bill`;
+        document.getElementById("dispatch-modal-subtitle").innerText =
+          `Guest: ${order.guestName || order.name || "Guest"} (${order.buildingName || "Hotel"})`;
+        const bodyEl = document.getElementById("dispatch-modal-body");
+        let itemsArr = [];
+        if (Array.isArray(order.items_json)) itemsArr = order.items_json;
+        else if (typeof order.items_json === "string") {
+          try {
+            itemsArr = JSON.parse(order.items_json);
+          } catch (e) {}
+        }
+
+        let totalAmt = calculateOrderTotal(order);
+        let dateStr = order.created_at
+          ? new Date(order.created_at).toLocaleString()
+          : "N/A";
+
+        let billHtml = `<div style="background:var(--bg-main); padding:16px; border-radius:10px; border:1px solid var(--border-color); font-size:12px; display:grid; gap:8px;"><div style="display:flex; justify-content:space-between;"><span style="opacity:0.7;">Order Time:</span><strong>${dateStr}</strong></div><div style="display:flex; justify-content:space-between;"><span style="opacity:0.7;">Guest Name:</span><strong>${order.guestName || order.name || "Guest"}</strong></div><hr style="border-color:var(--border-color); margin:6px 0;"><p style="margin:0; font-weight:bold; color:#fbbf24;">Ordered Items:</p>`;
+        itemsArr.forEach((i) => {
+          billHtml += `<div style="display:flex; justify-content:space-between;"><span>${i.name || "Item"} (x${i.qty || 1})</span><strong>₹${Number(i.price || 0) * Number(i.qty || 1)}</strong></div>`;
+        });
+        billHtml += `<hr style="border-color:var(--border-color); margin:6px 0;"><div style="display:flex; justify-content:space-between; font-size:14px; font-weight:900; color:#fbbf24;"><span>Total Amount:</span><span>₹${totalAmt}</span></div></div>`;
+        bodyEl.innerHTML = billHtml;
+        document
+          .getElementById("buildingDispatchModal")
+          .classList.remove("hidden");
+      }
+
+      function filterDashboardDrill(filterType) {
+        const titleEl = document.getElementById("dashboard-drill-title");
+        const tbody = document.getElementById("dashboard-drill-table-body");
+        if (!tbody) return;
+        const filtered = allOrdersCache.filter((o) => {
+          const mode = (o.order_mode || "").toLowerCase();
+          if (filterType === "instant") return mode !== "scheduled";
+          if (filterType === "scheduled") return mode === "scheduled";
+          return true;
+        });
+        titleEl.innerText = `⏰ ${filterType.toUpperCase()} Orders Inspection View`;
+        let html = "";
+        filtered.forEach((o) => {
+          const timeStr = o.created_at
+            ? new Date(o.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "N/A";
+          const locationStr = [
+            o.buildingName,
+            o.blockNo,
+            o.floorNo ? `Floor ${o.floorNo}` : "",
+            o.roomNumber ? `Room ${o.roomNumber}` : "",
+          ]
+            .filter(Boolean)
+            .join(" • ");
+          const total = calculateOrderTotal(o);
+          const isPayLater = checkIsPayLater(o);
+          let paymentBadge = isPayLater
+            ? '<span style="color:#f87171; font-weight:bold;">⏳ Pay Later</span>'
+            : '<span style="color:#34d399; font-weight:bold;">🟢 Paid</span>';
+          let statusBadge =
+            (o.status || "pending") === "delivered"
+              ? '<span style="color:#34d399; font-weight:bold;">Delivered</span>'
+              : `<button onclick="markOrderAsDelivered('${o.id}')" style="background:#fbbf24; color:#030712; padding:4px 8px; font-size:11px;">Deliver</button>`;
+          let itemsArr = [];
+          if (Array.isArray(o.items_json)) itemsArr = o.items_json;
+          else if (typeof o.items_json === "string") {
+            try {
+              itemsArr = JSON.parse(o.items_json);
+            } catch (e) {}
+          }
+          let itemsSummary = itemsArr
+            .map((i) => `${i.name || "Item"} (x${i.qty || 1})`)
+            .join(", ");
+          html += `<tr><td style="font-family:monospace; font-size:11px;">${timeStr}</td><td style="font-weight:bold;">${locationStr || "Main Desk"}</td><td>${o.guestName || o.name || "Guest"}<br/><span style="font-size:10px; opacity:0.6;">${o.phone || ""}</span></td><td>${itemsSummary}</td><td style="font-weight:bold; color:#fbbf24;">₹${total}</td><td>${paymentBadge}</td><td>${statusBadge}</td></tr>`;
+        });
+        tbody.innerHTML =
+          html ||
+          `<tr><td colspan="7" style="text-align:center; opacity:0.6;">No orders found.</td></tr>`;
+      }
+
+      function openFinancialBreakdownModal(type) {
+        currentFinancialRange = "all";
+        ["daily", "weekly", "monthly", "all"].forEach((r) => {
+          const btn = document.getElementById(`fin-range-${r}`);
+          if (btn)
+            btn.className =
+              r === currentFinancialRange ? "filter-btn active" : "filter-btn";
+        });
+        renderFinancialModalContent(type);
+        document
+          .getElementById("financialBreakdownModal")
+          .classList.remove("hidden");
+      }
+
+      function switchFinancialRange(range) {
+        currentFinancialRange = range;
+        ["daily", "weekly", "monthly", "all"].forEach((r) => {
+          const btn = document.getElementById(`fin-range-${r}`);
+          if (btn)
+            btn.className = r === range ? "filter-btn active" : "filter-btn";
+        });
+        renderFinancialModalContent(
+          document
+            .getElementById("financial-modal-title")
+            .innerText.includes("Revenue")
+            ? "revenue"
+            : "dues",
+        );
+      }
+
+      function renderFinancialModalContent(type) {
+        const titleEl = document.getElementById("financial-modal-title");
+        const subtitleEl = document.getElementById("financial-modal-subtitle");
+        const bodyEl = document.getElementById("financial-modal-body");
+        let filteredOrders = allOrdersCache.filter((o) => {
+          if (currentFinancialRange === "daily") return isToday(o.created_at);
+          if (currentFinancialRange === "weekly")
+            return isThisWeek(o.created_at);
+          if (currentFinancialRange === "monthly")
+            return isThisMonth(o.created_at);
+          return true;
+        });
+
+        let totalRev = 0,
+          upiRev = 0,
+          payLaterRev = 0,
+          totalDues = 0,
+          monthlyRevMap = {};
+        filteredOrders.forEach((o) => {
+          const amt = calculateOrderTotal(o);
+          totalRev += amt;
+          if (checkIsPayLater(o)) {
+            payLaterRev += amt;
+            if (o.status !== "delivered") totalDues += amt;
+          } else {
+            upiRev += amt;
+          }
+          if (o.created_at) {
+            const mKey = new Date(o.created_at).toLocaleString("default", {
+              month: "long",
+              year: "numeric",
+            });
+            monthlyRevMap[mKey] = (monthlyRevMap[mKey] || 0) + amt;
+          }
+        });
+
+        if (type === "revenue") {
+          titleEl.innerText = "💰 Total Revenue Breakdown";
+          subtitleEl.innerText = `Range: ${currentFinancialRange.toUpperCase()}`;
+          let monthlyHtml = "";
+          Object.keys(monthlyRevMap).forEach((m) => {
+            monthlyHtml += `<div style="display:flex; justify-content:space-between; background:var(--bg-table-th); padding:8px 12px; border-radius:6px; font-size:12px;"><span>${m}:</span><strong style="color:#fbbf24;">₹${monthlyRevMap[m]}</strong></div>`;
+          });
+          bodyEl.innerHTML = `<div style="background:var(--bg-table-th); padding:12px; border-radius:8px; display:grid; gap:8px;"><div style="display:flex; justify-content:space-between;"><span>Turnover:</span><strong style="color:#fbbf24;">₹${totalRev}</strong></div><div style="display:flex; justify-content:space-between; font-size:12px;"><span>UPI:</span><strong style="color:#34d399;">₹${upiRev}</strong></div><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Credit:</span><strong style="color:#f87171;">₹${payLaterRev}</strong></div></div><p style="margin:8px 0 4px; font-size:11px; font-weight:bold; color:#fbbf24;">Month-wise:</p>${monthlyHtml}`;
+        } else {
+          titleEl.innerText = "🚨 Pending Dues Breakdown";
+          subtitleEl.innerText = "Active Unpaid Balances";
+          let duesHtml = "";
+          allCustomersCache.forEach((c) => {
+            const dueAmt =
+              c.customerDues[
+                String(c.phone || "")
+                  .trim()
+                  .toLowerCase()
+              ] || 0;
+            if (dueAmt > 0)
+              duesHtml += `<div style="display:flex; justify-content:space-between; background:var(--bg-table-th); padding:8px 12px; border-radius:6px; font-size:12px;"><span>${c.name}:</span><strong style="color:#f87171;">₹${dueAmt}</strong></div>`;
+          });
+          bodyEl.innerHTML = `<div style="background:var(--bg-table-th); padding:12px; border-radius:8px; display:flex; justify-content:space-between;"><span>Total Dues:</span><strong style="color:#f87171; font-size:16px;">₹${totalDues}</strong></div><p style="margin:8px 0 4px; font-size:11px; font-weight:bold; color:#fbbf24;">Customer List:</p>${duesHtml || '<p style="font-size:12px; opacity:0.6;">No dues right now!</p>'}`;
+        }
+      }
+
+      function filterOrders(filterType) {
+        currentOrdersFilter = filterType;
+        ["today", "instant", "scheduled", "pending"].forEach((f) => {
+          const btn = document.getElementById(`ord-filter-${f}`);
+          if (btn)
+            btn.className =
+              f === filterType ? "filter-btn active" : "filter-btn";
+        });
+        renderOrdersTableFiltered();
+      }
+
+      function renderOrdersTableFiltered() {
+        const tbody = document.getElementById("orders-table-body");
+        if (!tbody) return;
+        const filtered = allOrdersCache.filter((o) => {
+          const mode = (o.order_mode || "").toLowerCase();
+          const status = (o.status || "pending").toLowerCase();
+          const matchesToday = isToday(o.created_at);
+          if (currentOrdersFilter === "today") return matchesToday;
+          if (currentOrdersFilter === "instant")
+            return matchesToday && mode !== "scheduled";
+          if (currentOrdersFilter === "scheduled")
+            return matchesToday && mode === "scheduled";
+          if (currentOrdersFilter === "pending")
+            return matchesToday && status === "pending";
+          return matchesToday;
+        });
+
+        let html = "";
+        filtered.forEach((o) => {
+          const timeStr = o.created_at
+            ? new Date(o.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "N/A";
+          const locationStr = [
+            o.buildingName,
+            o.blockNo,
+            o.floorNo ? `Floor ${o.floorNo}` : "",
+            o.roomNumber ? `Room ${o.roomNumber}` : "",
+          ]
+            .filter(Boolean)
+            .join(" • ");
+          const total = calculateOrderTotal(o);
+          let itemsArr = [];
+          if (Array.isArray(o.items_json)) itemsArr = o.items_json;
+          else if (typeof o.items_json === "string") {
+            try {
+              itemsArr = JSON.parse(o.items_json);
+            } catch (e) {}
+          }
+          let itemsSummary = itemsArr
+            .map((i) => `${i.name || "Item"} (x${i.qty || 1})`)
+            .join(", ");
+          html += `<tr><td style="font-family:monospace; font-size:11px;">${timeStr}</td><td style="font-weight:bold;">${locationStr || "Main Desk"}</td><td>${o.guestName || o.name || "Guest"}<br/><span style="font-size:10px; opacity:0.6;">${o.phone || ""}</span></td><td>${itemsSummary}</td><td style="font-weight:bold; color:#fbbf24;">₹${total}</td><td>${checkIsPayLater(o) ? '<span style="color:#f87171;">Pay Later</span>' : '<span style="color:#34d399;">Paid</span>'}</td><td>${(o.status || "pending") === "delivered" ? "Delivered" : `<button onclick="markOrderAsDelivered('${o.id}')" style="background:#fbbf24; padding:4px 8px;">Deliver</button>`}</td></tr>`;
+        });
+        tbody.innerHTML =
+          html ||
+          `<tr><td colspan="7" style="text-align:center; opacity:0.6;">No orders found.</td></tr>`;
+      }
+
+      function renderLiveKitchenBatches() {
+        const grid = document.getElementById("kitchen-batch-grid");
+        if (!grid) return;
+        let batchTotals = {};
+        allOrdersCache.forEach((o) => {
+          if (
+            !isToday(o.created_at) ||
+            (o.status || "").toLowerCase() === "delivered"
+          )
+            return;
+          let itemsArr = [];
+          if (Array.isArray(o.items_json)) itemsArr = o.items_json;
+          else if (typeof o.items_json === "string") {
+            try {
+              itemsArr = JSON.parse(o.items_json);
+            } catch (e) {}
+          }
+          itemsArr.forEach((i) => {
+            batchTotals[i.name || "Item"] =
+              (batchTotals[i.name || "Item"] || 0) + Number(i.qty || 1);
+          });
+        });
+        let html = "";
+        Object.keys(batchTotals).forEach((itemName) => {
+          html += `<div style="background:var(--bg-table-th); padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; border-left: 4px solid #60a5fa;"><div><h4 style="margin:0; font-size:14px;">${itemName}</h4><p style="margin:2px 0 0; font-size:10px; opacity:0.6;">Production Required</p></div><span style="background:#2563eb; color:white; font-weight:900; font-size:14px; padding:6px 12px; border-radius:8px;">Total: ${batchTotals[itemName]}</span></div>`;
+        });
+        grid.innerHTML =
+          html ||
+          `<div style="grid-column: 1/-1; padding: 16px; text-align: center; opacity: 0.6; font-size: 13px;">No kitchen batches for today.</div>`;
+      }
+
+      async function loadCRMData() {
+        try {
+          const customersSnap = await db.collection("customers_rows").get();
+          const ordersSnap = await db.collection("orders_rows").get();
+          let customerDues = {},
+            companySet = new Set();
+
+          ordersSnap.forEach((doc) => {
+            const o = doc.data();
+            if (o.buildingName) companySet.add(o.buildingName.trim());
+            if (checkIsPayLater(o)) {
+              const phoneKey = String(o.phone || "")
+                .trim()
+                .toLowerCase();
+              if (phoneKey)
+                customerDues[phoneKey] =
+                  (customerDues[phoneKey] || 0) + calculateOrderTotal(o);
+            }
+          });
+
+          allCustomersCache = [];
+          customersSnap.forEach((doc) => {
+            const cData = doc.data();
+            let assignedCompany =
+              cData.company || cData.buildingName || "General Office";
+            companySet.add(assignedCompany.trim());
+            allCustomersCache.push({
+              id: doc.id,
+              ...cData,
+              resolvedCompany: assignedCompany.trim(),
+              customerDues,
+            });
+          });
+
+          const dropdown = document.getElementById("crm-company-dropdown");
+          if (dropdown) {
+            let dropHtml = '<option value="all">All Companies</option>';
+            Array.from(companySet)
+              .sort()
+              .forEach((comp) => {
+                if (comp)
+                  dropHtml += `<option value="${comp}">${comp}</option>`;
+              });
+            dropdown.innerHTML = dropHtml;
+          }
+          renderCrmFiltered();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      function filterCrm(filterType) {
+        currentCrmFilter = filterType;
+        ["all", "dues"].forEach((f) => {
+          const btn = document.getElementById(`crm-filter-${f}`);
+          if (btn)
+            btn.className =
+              f === filterType ? "filter-btn active" : "filter-btn";
+        });
+        renderCrmFiltered();
+      }
+
+      function filterCrmByCompany() {
+        renderCrmFiltered();
+      }
+
+      function renderCrmFiltered() {
+        const tbody = document.getElementById("crm-table-body");
+        const companyDropdown = document.getElementById("crm-company-dropdown");
+        if (!tbody) return;
+        const selectedCompany = companyDropdown ? companyDropdown.value : "all";
+
+        let html = "";
+        allCustomersCache.forEach((c) => {
+          const customerCompany = c.resolvedCompany || "General Office";
+          if (
+            selectedCompany !== "all" &&
+            customerCompany.toLowerCase() !== selectedCompany.toLowerCase()
+          )
+            return;
+          const unpaidDue =
+            c.customerDues[
+              String(c.phone || "")
+                .trim()
+                .toLowerCase()
+            ] || 0;
+          if (currentCrmFilter === "dues" && unpaidDue <= 0) return;
+
+          html += `<tr><td><strong>${c.name || "Customer"}</strong><br/><span style="font-size:11px; opacity:0.6;">${c.phone || ""}</span></td><td><span style="color:#60a5fa; font-weight:bold; font-size:11px;">${customerCompany}</span></td><td>${new Date(c.created_at || Date.now()).toLocaleDateString()}</td><td>₹${c.custom_credit_limit || 0}</td><td style="color:#f87171; font-weight:bold;">₹${unpaidDue}</td><td style="text-align:center; display:flex; gap:6px; justify-content:center;"><button onclick="openCustomerBillingStatement('${(c.name || "").replace(/'/g, "\\'")}', '${c.phone || ""}', ${unpaidDue})" style="padding:4px 8px; font-size:11px; background:#60a5fa; color:#030712;">📜 Bill</button><button onclick="sendSingleWhatsAppReminder('${(c.name || "").replace(/'/g, "\\'")}', '${c.phone || ""}', ${unpaidDue})" style="padding:4px 8px; font-size:11px; background:#25d366; color:#030712; font-weight:bold;">💬 WhatsApp</button></td></tr>`;
+        });
+        tbody.innerHTML =
+          html ||
+          `<tr><td colspan="6" style="text-align:center; opacity:0.6;">No customer records found.</td></tr>`;
+      }
+
+      async function openCustomerBillingStatement(
+        customerName,
+        customerPhone,
+        unpaidDueAmt,
+      ) {
+        activeCustomerPhoneForWhatsApp = customerPhone;
+        activeCustomerNameForWhatsApp = customerName;
+        activeCustomerDueForWhatsApp = unpaidDueAmt;
+        document.getElementById("statement-customer-name").innerText =
+          `📜 Statement: ${customerName}`;
+        document.getElementById("statement-customer-phone").innerText =
+          `Phone: ${customerPhone}`;
+        const container = document.getElementById("statement-items-container");
+        container.innerHTML = `<p style="font-size:12px; opacity:0.6; text-align:center; padding: 20px;">Loading purchase history...</p>`;
+        document.getElementById("statement-total-due-amt").innerText =
+          `₹${unpaidDueAmt}`;
+        document
+          .getElementById("billingStatementModal")
+          .classList.remove("hidden");
+
+        const ordersSnap = await db.collection("orders_rows").get();
+        let statementHtml = "";
+        ordersSnap.forEach((doc) => {
+          const o = doc.data();
+          if (String(o.phone || "").trim() === String(customerPhone).trim()) {
+            const amt = calculateOrderTotal(o);
+            statementHtml += `<div style="background:var(--bg-table-th); padding:10px; border-radius:8px; font-size:12px; display:flex; justify-content:space-between;"><span>${new Date(o.created_at).toLocaleString()}</span><strong>₹${amt}</strong></div>`;
+          }
+        });
+        container.innerHTML =
+          statementHtml ||
+          `<p style="font-size:12px; opacity:0.6; text-align:center; padding: 20px;">No purchase records.</p>`;
+      }
+
+      function sendSingleWhatsAppReminder(customerName, customerPhone, dueAmt) {
+        if (!customerPhone) {
+          alert("Phone number missing.");
+          return;
+        }
+        let cleanPhone = customerPhone.replace(/\D/g, "");
+        if (cleanPhone.length === 10) cleanPhone = "91" + cleanPhone;
+        window.open(
+          `https://wa.me/${cleanPhone}?text=` +
+            encodeURIComponent(
+              `Hello ${customerName}, gentle reminder from Tastea F&B regarding your pending due of ₹${dueAmt}. Thank you!`,
+            ),
+          "_blank",
+        );
+      }
+
+      function sendStatementViaWhatsApp() {
+        if (!activeCustomerPhoneForWhatsApp) return;
+        let cleanPhone = activeCustomerPhoneForWhatsApp.replace(/\D/g, "");
+        if (cleanPhone.length === 10) cleanPhone = "91" + cleanPhone;
+        window.open(
+          `https://wa.me/${cleanPhone}?text=` +
+            encodeURIComponent(
+              `Hello ${activeCustomerNameForWhatsApp}, your Tastea billing statement summary. Total Unpaid Dues: ₹${activeCustomerDueForWhatsApp}. Thank you!`,
+            ),
+          "_blank",
+        );
+      }
+
+      function broadcastTodaysMenuWhatsApp() {
+        let specialItems = masterCatalogCache.filter(
+          (item) => item.is_todays_special === true,
+        );
+        if (specialItems.length === 0) {
+          alert("No items assigned as 'Active Today' yet!");
+          return;
+        }
+        let menuText =
+          "🫖✨ *TASTEA TODAY'S SPECIAL MENU & BATCH TIMINGS* ✨🫖\n\n🕒 *Cutoff Time:* 11:00 AM\n🚚 *Delivery Time:* 11:30 AM\n\n";
+        specialItems.forEach((item) => {
+          menuText += `  ▪️ ${item.name} : ₹${item.basePrice || item.price || 30}\n`;
+        });
+        menuText += `\n🚀 Place your orders now!`;
+        window.open(
+          `https://wa.me/?text=` + encodeURIComponent(menuText),
+          "_blank",
+        );
+      }
+
+      async function loadMasterBuildings() {
+        try {
+          const snap = await db.collection("buildings_rows").get();
+          allBuildingsCache = [];
+          snap.forEach((doc) => {
+            allBuildingsCache.push({ id: doc.id, ...doc.data() });
+          });
+          renderBuildingsFiltered();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      function filterBuildings(filterType) {
+        currentBldgFilter = filterType;
+        ["all", "scheduled", "instant"].forEach((f) => {
+          const btn = document.getElementById(`bldg-filter-${f}`);
+          if (btn)
+            btn.className =
+              f === filterType ? "filter-btn active" : "filter-btn";
+        });
+        renderBuildingsFiltered();
+      }
+
+      function renderBuildingsFiltered() {
+        const grid = document.getElementById("buildings-list-grid");
+        if (!grid) return;
+        const filtered = allBuildingsCache.filter((b) => {
+          const mode = (b.mode || "").toLowerCase();
+          if (currentBldgFilter === "scheduled") return mode !== "instant";
+          if (currentBldgFilter === "instant") return mode === "instant";
+          return true;
+        });
+
+        let html = "";
+        filtered.forEach((b) => {
+          let timingText =
+            b.mode === "instant"
+              ? `Open: ${b.openTime || "18:00"} | Close: ${b.closeTime || "22:00"}`
+              : `Cut-off: ${b.closedTime || "11:00"} | Delivery: ${b.deliveryTime || "11:30"}`;
+          html += `<div style="background:var(--bg-table-th); padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;"><div><h4 style="margin:0; font-size:14px; color:#fbbf24;">${b.name} <span style="font-size:9px; padding:2px 6px; background:rgba(96,165,250,0.2); color:#60a5fa; border-radius:4px;">${b.mode}</span></h4><p style="margin:4px 0 0; font-size:11px; opacity:0.7;">Pincode: ${b.pincode} | Fee: ₹${b.deliveryCharge || 0} | ${timingText}</p></div><div style="display:flex; gap:6px;"><button onclick="openQRGeneratorModal('${b.name.replace(/'/g, "\\'")}')" style="padding:6px 12px; font-size:11px; background:#34d399; color:#030712;">🔲 QR</button><button onclick="openBuildingModal('${b.id}')" style="padding:6px 12px; font-size:11px; background:#374151; color:white;">Edit</button></div></div>`;
+        });
+        grid.innerHTML =
+          html ||
+          `<div style="padding: 16px; text-align: center; opacity: 0.6; font-size: 13px;">No buildings found.</div>`;
+      }
+
+      function openQRGeneratorModal(buildingName) {
+        currentBuildingForQR = buildingName;
+        document.getElementById("qr-modal-title").innerText =
+          `🔲 QR Code Hub: ${buildingName}`;
+        document.getElementById("qr-line1-input").value = "";
+        document.getElementById("qr-line2-input").value = "";
+        document.getElementById("qrcode-render-box").innerHTML =
+          "<p style='font-size:11px; color:#333; margin:10px;'>Type details above, then click generate.</p>";
+        document.getElementById("qr-render-label").innerText = "";
+        document.getElementById("qrGeneratorModal").classList.remove("hidden");
+      }
+
+      function generateRawQRCode() {
+        const line1 = document.getElementById("qr-line1-input").value.trim();
+        const line2 = document.getElementById("qr-line2-input").value.trim();
+        const renderBox = document.getElementById("qrcode-render-box");
+        const labelBox = document.getElementById("qr-render-label");
+        renderBox.innerHTML = "";
+        const rawPayload = `BUILDING:${currentBuildingForQR}|INFO1:${line1 || "N/A"}|INFO2:${line2 || "N/A"}`;
+        labelBox.innerText = `${currentBuildingForQR}${line1 ? " - " + line1 : ""}${line2 ? " - " + line2 : ""}`;
+        new QRCode(renderBox, {
+          text: rawPayload,
+          width: 160,
+          height: 160,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }
+
+      function downloadRawQRCode() {
+        const img = document.querySelector("#qrcode-render-box img");
+        if (!img) {
+          alert("Please generate QR code first.");
+          return;
+        }
+        const link = document.createElement("a");
+        link.download = `QR_${currentBuildingForQR}.png`;
+        link.href = img.src;
+        link.click();
+      }
+
+      async function openBuildingModal(id = "") {
+        document.getElementById("edit-building-id").value = id;
+        document.getElementById("b-name-input").value = "";
+        document.getElementById("b-pincode-input").value = "";
+        document.getElementById("b-mode-input").value = "scheduled";
+        document.getElementById("b-closed-time").value = "11:00";
+        document.getElementById("b-delivery-time").value = "11:30";
+        document.getElementById("b-delivery-charge").value = "0";
+        toggleBuildingModeFields();
+
+        const snap = await db.collection("menu_items_rows").get();
+        allCatalogItemsForModal = [];
+        snap.forEach((doc) =>
+          allCatalogItemsForModal.push({ id: doc.id, ...doc.data() }),
+        );
+        renderBuildingModalItemsContainer();
+
+        if (id) {
+          document.getElementById("building-modal-title").innerText =
+            "🏢 Edit Master Building";
+          const docDoc = await db.collection("buildings_rows").doc(id).get();
+          if (docDoc.exists) {
+            const b = docDoc.data();
+            document.getElementById("b-name-input").value = b.name || "";
+            document.getElementById("b-pincode-input").value = b.pincode || "";
+            document.getElementById("b-mode-input").value =
+              b.mode || "scheduled";
+            toggleBuildingModeFields();
+            if (b.mode === "instant") {
+              document.getElementById("b-open-time").value =
+                b.openTime || "18:00";
+              document.getElementById("b-close-time").value =
+                b.closeTime || "22:00";
+              document.getElementById("b-instant-charge").value =
+                b.deliveryCharge || 0;
+            } else {
+              document.getElementById("b-closed-time").value =
+                b.closedTime || "11:00";
+              document.getElementById("b-delivery-time").value =
+                b.deliveryTime || "11:30";
+              document.getElementById("b-delivery-charge").value =
+                b.deliveryCharge || 0;
+            }
+          }
+        } else {
+          document.getElementById("building-modal-title").innerText =
+            "🏢 Add Master Building";
+        }
+        document.getElementById("buildingModal").classList.remove("hidden");
+      }
+
+      function filterBuildingModalItems(cat) {
+        currentModalCatFilter = cat;
+        renderBuildingModalItemsContainer();
+      }
+
+      function renderBuildingModalItemsContainer() {
+        const container = document.getElementById(
+          "building-prices-assignment-container",
+        );
+        if (!container) return;
+        const filtered = allCatalogItemsForModal.filter(
+          (item) =>
+            currentModalCatFilter === "all" ||
+            (item.category || "")
+              .toLowerCase()
+              .includes(currentModalCatFilter.toLowerCase()),
+        );
+        let html = "";
+        filtered.forEach((item) => {
+          html += `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; background:var(--bg-table-th); padding:6px 10px; border-radius:6px;"><span style="font-size:11px; font-weight:bold; flex:1;">${item.name}</span><input type="number" placeholder="Offer ₹" id="building-price-${item.id}" style="width:75px; padding:4px;" /></div>`;
+        });
+        container.innerHTML =
+          html ||
+          `<p style="font-size:11px; opacity:0.6; margin:0; grid-column:1/-1; text-align:center;">No items found.</p>`;
+      }
+
+      async function saveMasterBuilding() {
+        const id = document.getElementById("edit-building-id").value;
+        const name = document.getElementById("b-name-input").value.trim();
+        const pincode = document.getElementById("b-pincode-input").value.trim();
+        const mode = document.getElementById("b-mode-input").value;
+        if (!name) {
+          alert("Please provide building name.");
+          return;
+        }
+
+        let payload = {
+          name,
+          pincode,
+          mode,
+          updated_at: new Date().toISOString(),
+        };
+        if (mode === "instant") {
+          payload.openTime = document.getElementById("b-open-time").value;
+          payload.closeTime = document.getElementById("b-close-time").value;
+          payload.deliveryCharge = Number(
+            document.getElementById("b-instant-charge").value,
+          );
+        } else {
+          payload.closedTime = document.getElementById("b-closed-time").value;
+          payload.deliveryTime =
+            document.getElementById("b-delivery-time").value;
+          payload.deliveryCharge = Number(
+            document.getElementById("b-delivery-charge").value,
+          );
+        }
+
+        try {
+          if (id) await db.collection("buildings_rows").doc(id).update(payload);
+          else
+            await db
+              .collection("buildings_rows")
+              .add({ ...payload, created_at: new Date().toISOString() });
+          document.getElementById("buildingModal").classList.add("hidden");
+          loadMasterBuildings();
+          alert("Building saved successfully!");
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      }
+
+      async function loadCatalogGrid() {
+        try {
+          const snap = await db.collection("menu_items_rows").get();
+          masterCatalogCache = [];
+          snap.forEach((doc) =>
+            masterCatalogCache.push({ id: doc.id, ...doc.data() }),
+          );
+          renderCatalogFiltered();
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      function filterCatalog(category) {
+        currentCatalogFilter = category;
+        ["all", "Snack", "Beverage", "Food", "special"].forEach((cat) => {
+          const btn = document.getElementById(`filter-btn-${cat}`);
+          if (btn)
+            btn.className =
+              cat === category ? "filter-btn active" : "filter-btn";
+        });
+        renderCatalogFiltered();
+      }
+
+      function renderCatalogFiltered() {
+        const container = document.getElementById("master-menu-grid");
+        if (!container) return;
+        const filtered = masterCatalogCache.filter((item) => {
+          if (currentCatalogFilter === "all") return true;
+          if (currentCatalogFilter === "special")
+            return item.is_todays_special === true;
+          return (item.category || "")
+            .toLowerCase()
+            .includes(currentCatalogFilter.toLowerCase());
+        });
+
+        let html = "";
+        filtered.forEach((item) => {
+          const isDailyActive = item.is_todays_special || false;
+          html += `<div style="background:var(--bg-table-th); padding:14px; border-radius:12px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; border: 1px solid ${isDailyActive ? "#fbbf24" : "var(--border-color)"};"><div style="display:flex; gap:12px; align-items:center;"><img src="${item.image || "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150"}" style="width:60px; height:60px; border-radius:10px; object-fit:cover;" /><div style="flex:1;"><h5 style="margin:0; font-size:13px;">${item.name}</h5><p style="margin:2px 0 0; font-weight:bold; color:#fbbf24; font-size:12px;">₹${item.basePrice || item.price || 30}</p></div></div><button onclick="toggleDailyProduction('${item.id}', ${!isDailyActive})" style="width:100%; padding:6px; font-size:11px; font-weight:bold; background:${isDailyActive ? "#fbbf24" : "var(--bg-main)"}; color:${isDailyActive ? "#030712" : "#fbbf24"}; border-radius:6px; cursor:pointer;">${isDailyActive ? "🟢 Active Today (Assigned)" : "⚡ Assign for Today"}</button></div>`;
+        });
+        container.innerHTML =
+          html ||
+          `<div style="grid-column: 1/-1; padding: 16px; text-align: center; opacity: 0.6; font-size: 13px;">No items found.</div>`;
+      }
+
+      async function toggleDailyProduction(itemId, makeActive) {
+        try {
+          await db
+            .collection("menu_items_rows")
+            .doc(itemId)
+            .update({ is_todays_special: makeActive });
+          loadCatalogGrid();
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      async function loadAdminReelsList() {
+        try {
+          const snap = await db.collection("reels_rows").get();
+          let html = "";
+          snap.forEach((doc) => {
+            const r = doc.data();
+            html += `<div style="background:var(--bg-main); padding:10px; border-radius:8px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; font-size:12px;"><div><strong style="color:#fbbf24;">${r.title}</strong></div><button onclick="db.collection('reels_rows').doc('${doc.id}').delete(); loadAdminReelsList();" style="padding:4px 8px; font-size:10px; background:rgba(239,68,68,0.2); color:#f87171;">Delete</button></div>`;
+          });
+          document.getElementById("admin-reels-list").innerHTML =
+            html ||
+            `<p style="font-size:11px; opacity:0.6;">No reels published.</p>`;
+        } catch (e) {}
+      }
+
+      async function saveReelLinkToFirestore() {
+        const title = document.getElementById("admin-reel-title").value.trim();
+        const url = document.getElementById("admin-reel-url").value.trim();
+        if (!title || !url) {
+          alert("Fill title and URL.");
+          return;
+        }
+        await db
+          .collection("reels_rows")
+          .add({ title, video_url: url, created_at: new Date().toISOString() });
+        alert("Reel published!");
+        document.getElementById("admin-reel-title").value = "";
+        document.getElementById("admin-reel-url").value = "";
+        loadAdminReelsList();
+      }
+
+      function openMenuItemModal() {
+        document.getElementById("edit-item-id").value = "";
+        document.getElementById("item-name-input").value = "";
+        document.getElementById("item-price-input").value = "";
+        document.getElementById("item-image-input").value = "";
+        document.getElementById("menuItemModal").classList.remove("hidden");
+      }
+
+      async function saveCatalogItem() {
+        const name = document.getElementById("item-name-input").value.trim();
+        const basePrice = Number(
+          document.getElementById("item-price-input").value,
+        );
+        if (!name || !basePrice) {
+          alert("Please enter name and price.");
+          return;
+        }
+        await db.collection("menu_items_rows").add({
+          name,
+          basePrice,
+          price: basePrice,
+          dietary: document.getElementById("item-dietary-input").value,
+          category: document.getElementById("item-category-input").value,
+          target_mode: document.getElementById("item-target-mode").value,
+          image:
+            document.getElementById("item-image-input").value.trim() ||
+            "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150",
+          is_todays_special: true,
+          created_at: new Date().toISOString(),
+        });
+        document.getElementById("menuItemModal").classList.add("hidden");
+        loadCatalogGrid();
+      }
+    </script>
+  </body>
+</html>

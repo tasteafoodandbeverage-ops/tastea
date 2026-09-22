@@ -1,1154 +1,1440 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" id="html-root">
   <head>
     <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#f59e0b" />
     <link rel="apple-touch-icon" href="logo.png" />
-    <meta name="theme-color" content="#0f172a" />
     <meta charset="UTF-8" />
-    <title>Tastea - Corporate Snack & Flask Delivery</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <link rel="apple-touch-icon" href="logo.png" />
-    <link rel="icon" type="image/jpeg" href="logo.png" />
+    <title>Tastea Food and Beverage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script
+      src="https://unpkg.com/html5-qrcode"
+      type="text/javascript"
+    ></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
     />
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
       body {
-        overscroll-behavior-y: contain;
-        background: #fffbeb;
+        font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        background: #f8fafc;
+        color: #0f172a;
       }
-      @keyframes pulse-fast {
+      .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+      }
+      .glass-header {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+      }
+      .input-theme {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+      }
+      /* Veg & Non-Veg Symbol Styling */
+      .veg-symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 10px;
+        height: 10px;
+        border: 1.5px solid #16a34a;
+        border-radius: 2px;
+        background: #ffffff;
+        flex-shrink: 0;
+      }
+      .veg-dot {
+        width: 3px;
+        height: 3px;
+        background-color: #16a34a;
+        border-radius: 50%;
+      }
+      .nonveg-symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 10px;
+        height: 10px;
+        border: 1.5px solid #dc2626;
+        border-radius: 2px;
+        background: #ffffff;
+        flex-shrink: 0;
+      }
+      .nonveg-dot {
+        width: 3px;
+        height: 3px;
+        background-color: #dc2626;
+        border-radius: 50%;
+      }
+      @keyframes flash-red-alert {
         0%,
         100% {
-          opacity: 1;
+          background-color: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.6);
+        }
+        50% {
+          background-color: rgba(239, 68, 68, 0.45);
+          border-color: rgba(239, 68, 68, 1);
+        }
+      }
+      .animate-flash-red {
+        animation: flash-red-alert 1.2s infinite;
+      }
+      @keyframes party-pulse {
+        0%,
+        100% {
           transform: scale(1);
         }
         50% {
-          opacity: 0.4;
-          transform: scale(1.05);
+          transform: scale(1.02);
         }
       }
-      .flashing-badge {
-        animation: pulse-fast 1s infinite ease-in-out;
+      .animate-party {
+        animation: party-pulse 2s infinite ease-in-out;
+      }
+      input[name="payment-method"]:checked + span {
+        color: #d97706;
+      }
+      label:has(input[name="payment-method"]:checked) {
+        border: 2px solid #f59e0b !important;
+        background-color: rgba(245, 158, 11, 0.08);
       }
     </style>
   </head>
-  <body class="text-slate-900 font-sans min-h-screen flex flex-col m-0 p-0">
-    <script>
-      let currentBuildingDeliveryCharge = 0;
-      let deferredPrompt = null;
-      const urlParams = new URLSearchParams(window.location.search);
-      const qrHash = urlParams.get("qr");
-    </script>
-
-    <header
-      class="bg-slate-900 text-white p-3.5 shadow-xl sticky top-0 z-50 border-b border-amber-500/30"
-    >
-      <div
-        class="max-w-4xl mx-auto flex flex-row items-center justify-between gap-2"
-      >
-        <div class="flex items-center space-x-2.5">
+  <body class="flex flex-col min-h-screen pb-32">
+    <!-- APP WRAPPER -->
+    <div id="app-wrapper" class="flex flex-col flex-1">
+      <div class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div
+          class="glass-card w-full max-w-md p-6 rounded-3xl text-center space-y-4"
+        >
           <img
             src="logo.png"
-            alt="Tastea "
-            class="w-9 h-9 object-cover rounded-xl bg-white p-0.5 shadow-sm flex-shrink-0"
+            alt="Tastea Logo"
+            class="w-16 h-16 rounded-2xl mx-auto object-cover shadow-lg border border-amber-500/30"
           />
-          <div>
-            <h1
-              class="font-black text-xs sm:text-sm tracking-tight text-amber-400 leading-tight"
-              id="header-bldg-name"
-            >
-              TASTEA SNACKPASS
-            </h1>
-            <p
-              class="text-[10px] text-slate-300 font-bold truncate max-w-[150px] sm:max-w-xs"
-              id="header-bldg-location"
-            >
-              Loading location...
-            </p>
-          </div>
-        </div>
-        <div class="flex items-center gap-1.5 sm:gap-2">
-          <button
-            id="install-app-btn"
-            onclick="installPwaApp()"
-            class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-2.5 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-black items-center gap-1 cursor-pointer whitespace-nowrap shadow-xs hidden"
+          <h1
+            class="text-base font-extrabold text-amber-600 uppercase tracking-wider"
           >
-            <i class="fa-solid fa-download"></i> Install App
-          </button>
-          <button
-            onclick="openHistoryModal()"
-            class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-bold border border-slate-700 flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-xs"
-          >
-            📜 History
-          </button>
+            Standee QR Required
+          </h1>
+          <p class="text-xs opacity-75 leading-relaxed">
+            Please scan your OFFICE QR standee to verify your delivery location.
+          </p>
           <div
-            id="user-badge"
-            class="bg-slate-800 text-amber-300 px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-bold border border-slate-700 hidden truncate max-w-[110px]"
+            id="reader"
+            class="w-full overflow-hidden rounded-2xl border border-amber-500/30 hidden"
+          ></div>
+          <button
+            onclick="startCameraScanner()"
+            id="scan-trigger-btn"
+            class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider shadow-lg cursor-pointer transition"
           >
-            👤 <span id="logged-user-name">User</span>
-          </div>
+            CLICK TO OPEN QR SCANNER 🚀
+          </button>
         </div>
-      </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto w-full p-3.5 space-y-4 flex-1 pb-28">
-      <!-- ENJOY POSTPAID SNACKS ORDER -->
-      <div
-        id="main-credit-banner"
-        class="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-slate-950 p-3.5 rounded-2xl shadow-md space-y-2 hidden"
-      >
-        <div class="flex justify-between items-center text-xs">
-          <span class="font-black uppercase tracking-wider text-amber-950"
-            >💳 Credit Ledger Summary</span
-          >
-          <span
-            class="bg-white/90 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px]"
-            id="main-user-limit-badge"
-            >Limit: ₹0</span
-          >
-        </div>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div
-            class="bg-white/20 p-2 rounded-xl border border-white/20 flex items-center justify-between"
-          >
-            <div>
-              <span class="text-[9px] uppercase font-bold text-amber-950 block"
-                >Outstanding Dues</span
-              >
-              <span
-                class="font-black text-sm text-rose-950"
-                id="main-user-due-display"
-                >₹0</span
-              >
-            </div>
-            <button
-              onclick="payDuesNow()"
-              id="pay-due-btn"
-              class="bg-slate-900 text-amber-300 hover:bg-slate-800 font-black px-2.5 py-1 rounded-lg text-[10px] shadow-xs cursor-pointer uppercase hidden"
-            >
-              Pay ⚡
-            </button>
-          </div>
-          <div class="bg-white/20 p-2 rounded-xl border border-white/20">
-            <span class="text-[9px] uppercase font-bold text-amber-950 block"
-              >Available Limit</span
-            >
-            <span
-              class="font-black text-sm text-slate-950"
-              id="main-user-avail-display"
-              >₹0</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <!-- FLASHING ORDER CLOSED AT CUTOFF WARNING -->
-      <div
-        class="bg-gradient-to-r from-rose-600 via-orange-600 to-amber-600 text-white p-3 rounded-2xl shadow-md flex items-center justify-between text-xs font-black flashing-badge"
-      >
-        <span class="flex items-center gap-2">⏰ TODAY'S ORDER CLOSED AT:</span>
-        <span
-          id="banner-cutoff-time"
-          class="bg-white text-slate-950 px-2.5 py-1 rounded-xl text-xs shadow-xs"
-          >--:--</span
-        >
-      </div>
-
-      <div class="pt-1 flex justify-between items-center">
-        <h3 class="font-black text-slate-900 text-sm uppercase tracking-wider">
-          🍲 Today's Live Menu & Special Items
-        </h3>
-      </div>
-
-      <!-- PERFECTLY ALIGNED PRODUCT GRID -->
-      <div id="menu-items-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div
-          class="p-6 bg-white rounded-2xl shadow-sm text-center text-slate-400 text-xs border border-amber-200"
-        >
-          Authenticating session...
-        </div>
-      </div>
-
-      <!-- STUNNING PARTY BULK ORDER BANNER -->
-      <div
-        class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 relative overflow-hidden mt-6"
-      >
-        <div
-          class="absolute -right-6 -bottom-6 text-white/10 text-8xl font-black pointer-events-none"
-        >
-          🎉
-        </div>
-        <div class="space-y-1 text-center sm:text-left z-10">
-          <span
-            class="bg-white/20 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md"
-            >Special Price for Event & Parties</span
-          >
-          <h4 class="font-black text-sm sm:text-base leading-tight">
-            Planning an Office Party or Birthday/Anniversary Order?
-          </h4>
-          <p class="text-[11px] text-amber-100">
-            Get customized snack boxes, fresh filter coffee & tea flasks
-            delivered for events.
-          </p>
-        </div>
-        <a
-          href="https://wa.me/919629511751?text=Hi%20Tastea,%20I%20would%20like%20to%20enquire%20about%20party%20bulk%20orders!"
-          target="_blank"
-          class="bg-slate-900 hover:bg-slate-800 text-amber-300 font-black px-4 py-2.5 rounded-xl text-xs shadow-md whitespace-nowrap z-10 cursor-pointer flex items-center gap-1.5 transition transform hover:scale-105"
-        >
-          <i class="fa-brands fa-whatsapp text-sm"></i> Enquire Bulk 💬
-        </a>
-      </div>
-    </main>
-
-    <!-- FLOATING CHECKOUT BAR -->
-    <div
-      id="checkout-bar"
-      class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-amber-500/30 p-3.5 shadow-2xl z-40 hidden"
-    >
-      <div
-        class="max-w-4xl mx-auto flex justify-between items-center text-white"
-      >
-        <div>
-          <p
-            class="text-[10px] text-amber-400 uppercase font-bold tracking-wider"
-          >
-            Total Amount
-          </p>
-          <p class="text-lg font-black text-amber-300" id="floating-total">
-            ₹0
-          </p>
-        </div>
-        <button
-          onclick="openCartModal()"
-          class="bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 font-black px-5 py-3 rounded-xl text-xs transition shadow-lg cursor-pointer transform hover:scale-105"
-        >
-          loadAdminDashboardDataOrder 🚀
-        </button>
       </div>
     </div>
 
-    <!-- MANDATORY AUTH LOGIN MODAL -->
+    <!-- WHATSAPP SIGN-IN MODAL -->
     <div
       id="auth-modal"
-      class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+      class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4"
     >
       <div
-        class="bg-white w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl border border-amber-100"
+        class="glass-card w-full max-w-sm rounded-3xl p-6 space-y-4 border-2 border-amber-500/40 shadow-2xl"
       >
-        <div class="text-center space-y-1">
-          <span class="text-3xl">☕</span>
-          <h3
-            class="font-black text-slate-900 text-base uppercase tracking-wider"
-          >
-            Welcome to Tastea!
-          </h3>
-          <p class="text-[11px] text-slate-500">
-            Please verify your mobile number to view menu and place orders.
-          </p>
-        </div>
-        <div id="step-details" class="space-y-3 text-xs pt-2">
+        <div class="flex items-center gap-3 border-b border-slate-200 pb-3">
+          <img
+            src="logo.png"
+            alt="Logo"
+            class="w-10 h-10 rounded-xl object-cover shadow"
+          />
           <div>
-            <label class="block text-[10px] text-slate-500 font-bold mb-1"
-              >Your Full Name *</label
+            <h3 class="font-extrabold text-sm uppercase text-amber-600">
+              Welcome to Tastea!
+            </h3>
+            <p class="text-[10px] opacity-75">Verify WhatsApp Number</p>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold uppercase opacity-75 mb-1"
+              >Your Full Name</label
             >
             <input
               type="text"
-              id="reg-name"
-              placeholder="Suresh Kannan"
-              class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              id="auth-name"
+              placeholder="Abinaya Lakshmi"
+              class="w-full input-theme border rounded-2xl px-4 py-3 text-xs outline-none font-semibold"
             />
           </div>
           <div>
-            <label class="block text-[10px] text-slate-500 font-bold mb-1"
-              >Mobile Number (For Verification) *</label
+            <label class="block text-[10px] font-bold uppercase opacity-75 mb-1"
+              >WhatsApp Phone Number</label
             >
             <input
               type="tel"
-              id="reg-phone"
-              placeholder="9840012345"
-              class="w-full bg-slate-50 border p-3 rounded-2xl font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              id="auth-phone"
+              placeholder="8754991879"
+              class="w-full input-theme border rounded-2xl px-4 py-3 text-xs outline-none font-semibold"
             />
           </div>
           <button
-            type="button"
-            onclick="sendAuthOtp()"
-            class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-2xl text-xs cursor-pointer shadow-md mt-2"
+            onclick="verifyAndSaveUser()"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider cursor-pointer shadow-lg flex items-center justify-center gap-2"
           >
-            Send Verification OTP 📱
-          </button>
-        </div>
-        <div id="step-otp" class="space-y-3 text-xs pt-2 hidden">
-          <div
-            class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-center text-amber-900 text-[11px]"
-          >
-            6-digit OTP sent to <b id="display-phone-num"></b><br /><span
-              class="text-[9px] text-emerald-700 font-bold"
-              >(Simulator OTP: 123456)</span
-            >
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 font-bold mb-1"
-              >Enter 6-Digit OTP *</label
-            >
-            <input
-              type="text"
-              id="entered-otp"
-              placeholder="123456"
-              maxlength="6"
-              class="w-full bg-slate-50 border p-3 rounded-2xl font-black text-center text-base tracking-widest text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-            />
-          </div>
-          <button
-            type="button"
-            onclick="verifyAuthOtp()"
-            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl text-xs cursor-pointer shadow-md mt-2"
-          >
-            Verify & Continue ✨
+            <i class="fa-brands fa-whatsapp text-base"></i> Verify with WhatsApp
+            🚀
           </button>
         </div>
       </div>
     </div>
 
-    <!-- ORDER SUCCESS MODAL -->
+    <!-- MY ACCOUNTS MODAL -->
     <div
-      id="order-success-modal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
+      id="account-modal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4"
     >
       <div
-        class="bg-white w-full max-w-sm rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-amber-200"
+        class="glass-card w-full max-w-md rounded-3xl p-6 space-y-5 border border-amber-500/20 max-h-[85vh] overflow-y-auto"
       >
         <div
-          class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner"
+          class="flex justify-between items-center border-b border-slate-200 pb-3"
         >
-          <i class="fa-solid fa-check"></i>
-        </div>
-        <div class="space-y-1">
-          <h3
-            class="font-black text-slate-900 text-lg uppercase tracking-wider text-emerald-700"
+          <div>
+            <h3 class="font-extrabold text-sm uppercase text-amber-600">
+              👤 My Accounts
+            </h3>
+            <p id="account-user-subtitle" class="text-[11px] opacity-75">
+              Profile, dues & order history
+            </p>
+          </div>
+          <button
+            onclick="
+              document.getElementById('account-modal').classList.add('hidden')
+            "
+            class="font-bold text-xs cursor-pointer"
           >
-            Order Placed Successfully!
-          </h3>
-          <p class="text-xs text-slate-500 font-medium">
-            Your snacks & hot brews are queued for desk delivery.
-          </p>
+            ✕
+          </button>
         </div>
+        <div class="space-y-4">
+          <div
+            class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3"
+          >
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p class="text-[9px] uppercase font-bold text-amber-600">
+                  Credit Limit
+                </p>
+                <p class="text-sm font-black" id="ledger-credit-limit">₹50</p>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase font-bold text-rose-600">
+                  Unpaid Dues
+                </p>
+                <p
+                  class="text-sm font-black text-rose-600"
+                  id="ledger-total-due"
+                >
+                  ₹0
+                </p>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase font-bold text-emerald-600">
+                  Available
+                </p>
+                <p
+                  class="text-sm font-black text-emerald-600"
+                  id="ledger-available-limit"
+                >
+                  ₹50
+                </p>
+              </div>
+            </div>
+            <button
+              onclick="payLedgerDuesViaRazorpay()"
+              id="pay-dues-btn"
+              class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2.5 rounded-xl text-xs uppercase shadow-md cursor-pointer transition hidden"
+            >
+              Pay Clear Dues via UPI ⚡
+            </button>
+          </div>
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold uppercase opacity-75">
+              Recent Order History
+            </h4>
+            <div
+              id="customer-orders-history-list"
+              class="space-y-2 max-h-48 overflow-y-auto"
+            >
+              <p class="text-xs text-center opacity-60 py-4">
+                Loading order history...
+              </p>
+            </div>
+          </div>
+          <div
+            class="p-4 rounded-2xl glass-card space-y-2 border border-slate-200"
+          >
+            <h4 class="text-xs font-extrabold uppercase opacity-75">
+              Profile Details
+            </h4>
+            <div class="space-y-2">
+              <input
+                type="text"
+                id="acc-name"
+                placeholder="Full Name"
+                class="w-full input-theme border rounded-xl px-3 py-2 text-xs font-bold"
+              />
+              <input
+                type="tel"
+                id="acc-phone"
+                placeholder="WhatsApp Phone"
+                class="w-full input-theme border rounded-xl px-3 py-2 text-xs font-bold"
+              />
+              <button
+                onclick="updateUserProfile()"
+                class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-black py-2 rounded-xl text-xs uppercase cursor-pointer shadow"
+              >
+                Update Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK ENQUIRY MODAL -->
+    <div
+      id="bulk-modal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-card w-full max-w-sm rounded-3xl p-6 space-y-4 border border-amber-500/30"
+      >
         <div
-          class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200 text-left text-xs space-y-1"
+          class="flex justify-between items-center border-b border-slate-200 pb-2"
         >
-          <div class="flex justify-between">
-            <span class="text-slate-500">Building:</span
-            ><b id="succ-bldg" class="text-slate-900">--</b>
+          <h3 class="font-extrabold text-xs uppercase text-amber-600">
+            🎉 Special Price / Party Enquiry
+          </h3>
+          <button
+            onclick="
+              document.getElementById('bulk-modal').classList.add('hidden')
+            "
+            class="font-bold text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-3">
+          <p class="text-[11px] font-bold text-slate-700 leading-relaxed">
+            Planning a celebration, event, or office party? Get
+            <span class="text-amber-600 font-black">Special Prices</span> for
+            bulk orders & flask tea!
+          </p>
+          <div>
+            <label class="block text-[10px] font-bold uppercase opacity-75 mb-1"
+              >Event / Bulk Requirements (Qty, Items, Time)</label
+            >
+            <textarea
+              id="bulk-notes"
+              placeholder="Birthday party, 30 tea flasks & samosas needed..."
+              class="w-full input-theme border rounded-xl px-3 py-2 text-xs font-bold h-24 resize-none"
+            ></textarea>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Payment:</span
-            ><b id="succ-mode" class="text-slate-900 uppercase">--</b>
+          <button
+            onclick="sendBulkEnquiryWhatsApp()"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider cursor-pointer shadow flex items-center justify-center gap-2"
+          >
+            <i class="fa-brands fa-whatsapp text-sm"></i> Send Enquiry via
+            WhatsApp 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREDIT LIMIT WARNING POPUP MODAL -->
+    <div
+      id="credit-limit-modal"
+      class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="glass-card w-full max-w-sm rounded-3xl p-6 space-y-4 border-2 border-rose-500/50 shadow-2xl text-center"
+      >
+        <div
+          class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-600 flex items-center justify-center mx-auto text-xl font-black"
+        >
+          ⚠️
+        </div>
+        <h3 class="font-extrabold text-sm uppercase text-rose-600">
+          Credit Limit Exceeded
+        </h3>
+        <p id="credit-limit-msg" class="text-xs opacity-80 leading-relaxed">
+          Your order value exceeds your available credit limit. Please pay
+          online via UPI to proceed.
+        </p>
+        <div class="space-y-2 pt-2">
+          <button
+            onclick="payViaUPIFromModal()"
+            class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-2xl text-xs uppercase tracking-wider cursor-pointer shadow-lg"
+          >
+            Pay Now via UPI ⚡
+          </button>
+          <button
+            onclick="
+              document
+                .getElementById('credit-limit-modal')
+                .classList.add('hidden')
+            "
+            class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-2xl text-xs uppercase cursor-pointer"
+          >
+            Close ✕
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKOUT SUMMARY CONTAINER BREAKUP -->
+    <div
+      style="
+        background: var(--bg-table-th);
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        margin-top: 16px;
+      "
+    >
+      <h4 style="margin: 0 0 12px 0; color: var(--accent)">
+        Order Bill Summary
+      </h4>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 13px;
+        "
+      >
+        <span>Cart Value:</span>
+        <strong id="summary-cart-value">₹0</strong>
+      </div>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 13px;
+        "
+      >
+        <span>Delivery Charge:</span>
+        <strong id="summary-delivery-charge" style="color: var(--text-sub)"
+          >₹0</strong
+        >
+      </div>
+      <hr
+        style="
+          border: 0;
+          border-top: 1px solid var(--border-color);
+          margin: 8px 0;
+        "
+      />
+      <div
+        style="display: flex; justify-content: space-between; font-size: 15px"
+      >
+        <span style="font-weight: bold">Final Total:</span>
+        <strong
+          id="summary-final-total"
+          style="color: var(--accent); font-weight: 900"
+          >₹0</strong
+        >
+      </div>
+    </div>
+    <!-- CHECKOUT MODAL -->
+    <div
+      id="checkout-modal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4"
+    >
+      <div
+        class="glass-card w-full max-w-md sm:rounded-3xl rounded-t-3xl p-6 space-y-5 border-t sm:border border-amber-500/20 max-h-[90vh] overflow-y-auto"
+      >
+        <div
+          class="flex justify-between items-center border-b border-slate-200 pb-3"
+        >
+          <div>
+            <h3
+              class="font-extrabold text-sm uppercase tracking-wider text-amber-600"
+              id="checkout-modal-title"
+            >
+              Order Confirmation
+            </h3>
+            <p class="text-[11px] opacity-75" id="checkout-modal-subtitle">
+              Building & Floor delivery verification
+            </p>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-500">Total Amount:</span
-            ><b id="succ-total" class="text-amber-600">--</b>
+          <button
+            onclick="
+              document.getElementById('checkout-modal').classList.add('hidden')
+            "
+            class="w-8 h-8 rounded-full glass-card flex items-center justify-center font-bold text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label
+              class="block text-[10px] font-extrabold uppercase opacity-75 mb-1.5"
+              >Delivery Location (Building / Floor / Room)</label
+            >
+            <input
+              type="text"
+              id="customer-location-display"
+              readonly
+              class="w-full input-theme border rounded-2xl px-4 py-3 text-xs outline-none font-bold opacity-90 cursor-not-allowed"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-[10px] font-extrabold uppercase opacity-75"
+              >Review Items</label
+            >
+            <div
+              id="checkout-items-list"
+              class="space-y-2 p-3 rounded-2xl glass-card max-h-40 overflow-y-auto"
+            ></div>
+          </div>
+          <div
+            id="available-balance-banner"
+            class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex justify-between items-center text-xs font-bold"
+          >
+            <span>Available Credit Balance:</span>
+            <span id="modal-available-balance" class="text-amber-600 font-black"
+              >₹0</span
+            >
+          </div>
+          <div class="space-y-2">
+            <label class="block text-[10px] font-extrabold uppercase opacity-75"
+              >Payment Mode</label
+            >
+            <div class="grid grid-cols-2 gap-3">
+              <label
+                class="flex flex-col p-3.5 rounded-2xl glass-card border border-slate-300 cursor-pointer transition"
+              >
+                <div class="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value="Pay Later"
+                    checked
+                    class="accent-amber-500"
+                  />
+                  <span class="text-xs font-bold">📋 Pay Later</span>
+                </div>
+                <span
+                  class="text-[10px] font-semibold text-emerald-600 mt-1 pl-5"
+                  >Credit Order</span
+                >
+              </label>
+              <label
+                class="flex items-center gap-2.5 p-3.5 rounded-2xl glass-card border border-slate-300 cursor-pointer transition"
+              >
+                <input
+                  type="radio"
+                  name="payment-method"
+                  value="UPI"
+                  class="accent-amber-500"
+                />
+                <span class="text-xs font-bold">⚡ Pay Now (UPI)</span>
+              </label>
+            </div>
           </div>
         </div>
         <button
-          onclick="closeSuccessModal()"
-          class="w-full bg-slate-900 hover:bg-slate-800 text-amber-300 font-black py-3 rounded-2xl text-xs cursor-pointer shadow-md uppercase tracking-wider"
+          onclick="submitOrderToFirestore()"
+          id="confirm-order-btn"
+          class="w-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black py-4 rounded-2xl text-xs uppercase tracking-wider shadow-xl shadow-amber-500/20 cursor-pointer transition"
         >
-          Got It, Thanks! 🚀
+          CONFIRM ORDER 🚀
         </button>
       </div>
     </div>
 
-    <!-- HISTORY MODAL -->
-    <div
-      id="history-modal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden"
-    >
-      <div
-        class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto border border-amber-100"
-      >
-        <div class="flex justify-between items-center border-b pb-3">
-          <h3
-            class="font-black text-slate-900 text-sm uppercase tracking-wider"
-          >
-            📜 My Order History
-          </h3>
-          <button
-            onclick="closeHistoryModal()"
-            class="text-slate-400 hover:text-slate-700 font-bold text-sm cursor-pointer"
-          >
-            ✕ Close
-          </button>
-        </div>
-        <div id="user-history-list" class="space-y-3 text-xs">
-          <p class="text-center text-slate-400 py-4">Loading your history...</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- CART MODAL -->
-    <div
-      id="cart-modal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden"
-    >
-      <div
-        class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto border border-amber-100"
-      >
-        <div
-          class="flex justify-between items-center border-b border-slate-100 pb-3"
-        >
-          <h3
-            class="font-black text-slate-900 text-sm uppercase tracking-wider"
-          >
-            🛒 Your Order Summary
-          </h3>
-          <button
-            onclick="closeCartModal()"
-            class="text-slate-400 hover:text-slate-700 font-bold text-sm cursor-pointer"
-          >
-            ✕ Close
-          </button>
-        </div>
-        <div
-          id="cart-items-list"
-          class="divide-y divide-slate-100 max-h-[160px] overflow-y-auto"
-        ></div>
-        <div class="space-y-3 pt-1">
-          <h4 class="font-black text-slate-900 text-xs uppercase">
-            💳 Select Payment Mode
-          </h4>
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <label
-              id="pay-now-label"
-              class="border-2 border-amber-300 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-amber-50 font-bold transition"
-            >
-              <input
-                type="radio"
-                name="payment-mode"
-                value="pay_now"
-                checked
-                onchange="togglePaymentInstructions()"
-                class="text-amber-600 focus:ring-amber-500"
-              />
-              <span>Pay Now (UPI App)</span>
-            </label>
-            <label
-              id="pay-later-label"
-              class="border-2 border-slate-200 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 font-bold transition"
-            >
-              <input
-                type="radio"
-                name="payment-mode"
-                value="pay_later"
-                onchange="togglePaymentInstructions()"
-                class="text-amber-600 focus:ring-amber-500"
-              />
-              <span>Pay Later</span>
-            </label>
-          </div>
-          <div
-            id="pay-now-box"
-            class="bg-amber-50 border border-amber-300 p-4 rounded-2xl space-y-3 text-xs text-center"
-          >
-            <p class="font-extrabold text-amber-900">
-              Select your preferred UPI App to pay & confirm order instantly:
-            </p>
-            <div class="grid grid-cols-2 gap-2 pt-1">
-              <button
-                type="button"
-                onclick="launchUpiAppAndConfirm('gpay')"
-                class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs"
-              >
-                <span>🔵 Google Pay</span>
-              </button>
-              <button
-                type="button"
-                onclick="launchUpiAppAndConfirm('phonepe')"
-                class="bg-purple-900 hover:bg-purple-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs"
-              >
-                <span>🟣 PhonePe</span>
-              </button>
-            </div>
-          </div>
-          <div
-            id="pay-later-box"
-            class="bg-slate-100 border border-slate-300 p-4 rounded-2xl space-y-2 text-xs hidden text-left"
-          >
-            <p class="font-bold text-slate-800">
-              ⚠️ Pay Later (Individual Credit Limit)
-            </p>
-            <p class="text-[11px] text-slate-600">
-              Your order will be instantly confirmed using your allocated
-              individual credit limit.
-            </p>
-          </div>
-        </div>
-        <div
-          class="border-t border-slate-100 pt-3 flex justify-between items-center"
-          id="pay-later-confirm-footer"
-        >
-          <div>
-            <span class="text-[10px] text-slate-500 font-bold uppercase block"
-              >Grand Total</span
-            >
-            <span
-              class="text-xl font-black text-amber-600"
-              id="modal-grand-total"
-              >₹0</span
-            >
-          </div>
-          <button
-            id="pay-later-btn"
-            onclick="submitOrder()"
-            class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black px-6 py-3.5 rounded-2xl text-xs transition shadow-lg cursor-pointer hidden"
-          >
-            Confirm & Order Now ✨
-          </button>
-        </div>
-      </div>
-    </div>
-
+    <!-- SCRIPT ENGINE -->
     <script>
-      const SUPABASE_URL = "https://nqracjckmojkttgoemsl.supabase.co";
-      const SUPABASE_KEY = "sb_publishable_66dRKnwJ75Z-U3wKOHgM2g_MfrpRcEE";
-      const supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY,
+      const firebaseConfig = {
+        apiKey: "AIzaSyCggBRdVQqEsVX6pOnackOcCLr5RMXmebc",
+        authDomain: "tastea-food-and-beverage.firebaseapp.com",
+        projectId: "tastea-food-and-beverage",
+        storageBucket: "tastea-food-and-beverage.firebasestorage.app",
+        messagingSenderId: "669318528715",
+        appId: "1:669318528715:web:421955e4a2cdff00de654e",
+        measurementId: "G-ZZ38SHY5X1",
+      };
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      function getFormattedDate(dateObj) {
+        return dateObj.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      let qrBuilding =
+        urlParams.get("building") ||
+        localStorage.getItem("tastea_building") ||
+        "";
+      let qrBlock =
+        urlParams.get("block") || localStorage.getItem("tastea_block") || "";
+      let qrFloor =
+        urlParams.get("floor") || localStorage.getItem("tastea_floor") || "";
+      let qrRoom =
+        urlParams.get("room") || localStorage.getItem("tastea_room") || "";
+      let qrMode =
+        urlParams.get("mode") ||
+        localStorage.getItem("tastea_mode") ||
+        "scheduled";
+      let qrDeliveryCharge = Number(
+        urlParams.get("charge") || localStorage.getItem("tastea_charge") || 0,
       );
 
-      let currentLocation = null;
-      let menuItems = [];
+      if (qrBuilding) {
+        localStorage.setItem("tastea_building", qrBuilding);
+        localStorage.setItem("tastea_block", qrBlock);
+        localStorage.setItem("tastea_floor", qrFloor);
+        localStorage.setItem("tastea_room", qrRoom);
+        localStorage.setItem("tastea_mode", qrMode);
+        localStorage.setItem("tastea_charge", qrDeliveryCharge);
+      }
+      let todaysSpecialCache = [];
+      let menuOfMonthCache = [];
       let cart = {};
-      let tempPhone = "";
-      let tempName = "";
-      let totalVegOrderedToday = 0;
-      let totalNonVegOrderedToday = 0;
-      let currentUserDue = 0;
-      const VEG_MAX_QUOTA = 50;
-      const NONVEG_MAX_QUOTA = 50;
+      let activeCategory = "Snack";
+      let buildingTimings = { closedTime: "12:00", deliveryTime: "16:00" };
+      let buildingPricesMap = {};
+      let currentUnpaidDues = 0;
+      let customerCreditLimit = 50;
+      let availableCreditBalance = 50;
 
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById("install-app-btn").classList.remove("hidden");
-        document.getElementById("install-app-btn").classList.add("inline-flex");
+      function formatTimeTo12Hour(time24) {
+        if (!time24) return "12:00 PM";
+        let timeStr = String(time24).trim();
+        if (!timeStr.includes(":")) timeStr += ":00";
+        let parts = timeStr.split(":");
+        let hours = Number(parts[0]) || 0;
+        let minutes = Number(parts[1]) || 0;
+        let period = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${hours}:${minutes < 10 ? "0" + minutes : minutes} ${period}`;
+      }
+
+      function checkIfBatchClosed(buildingClosedTime) {
+        if (!buildingClosedTime) return false;
+        let timeStr = String(buildingClosedTime).trim();
+        if (!timeStr.includes(":")) timeStr += ":00";
+        let [closeHour, closeMinute] = timeStr.split(":").map(Number);
+
+        const now = new Date();
+        const currentHour = now.getHours();
+
+        // Midnight Reset (12:00 AM to 5:00 AM) automatically re-opens storefront for the new day
+        if (currentHour >= 0 && currentHour < 5) {
+          return false;
+        }
+
+        const currentTimeVal = currentHour * 60 + now.getMinutes();
+        const closeTimeVal = (closeHour || 12) * 60 + (closeMinute || 0);
+        return currentTimeVal >= closeTimeVal;
+      }
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        if (!qrBuilding) {
+          return;
+        }
+
+        const savedPhone = localStorage.getItem("tastea_user_phone");
+        if (!savedPhone) {
+          document.getElementById("auth-modal").classList.remove("hidden");
+          return;
+        } else {
+          await checkAndRegisterCustomer(
+            localStorage.getItem("tastea_user_name") || "Guest",
+            savedPhone,
+          );
+        }
+
+        initializeStorefront();
       });
 
-      async function installPwaApp() {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          let { outcome } = await deferredPrompt.userChoice;
-          if (outcome === "accepted") {
-            document.getElementById("install-app-btn").classList.add("hidden");
+      async function initializeStorefront() {
+        try {
+          const bSnap = await db
+            .collection("buildings_rows")
+            .where("name", "==", qrBuilding)
+            .get();
+          if (!bSnap.empty) {
+            const bData = bSnap.docs[0].data();
+            if (bData.mode) qrMode = bData.mode;
+            if (bData.closedTime) buildingTimings.closedTime = bData.closedTime;
+            if (bData.deliveryTime)
+              buildingTimings.deliveryTime = bData.deliveryTime;
+            if (bData.deliveryCharge !== undefined)
+              qrDeliveryCharge = Number(bData.deliveryCharge);
+            if (bData.building_prices)
+              buildingPricesMap = bData.building_prices;
           }
-          deferredPrompt = null;
-        } else {
-          alert(
-            'To install, open your browser menu (three dots) and select "Add to Home Screen" or "Install App".',
-          );
+        } catch (e) {
+          console.error(e);
+        }
+
+        await fetchCustomerLedgerData();
+
+        const isBatchClosed = checkIfBatchClosed(buildingTimings.closedTime);
+        const displayCutoffTime = formatTimeTo12Hour(
+          buildingTimings.closedTime,
+        );
+        const displayDeliveryTime = formatTimeTo12Hour(
+          buildingTimings.deliveryTime,
+        );
+        const todayDateFormatted = getFormattedDate(new Date());
+
+        let bannerHtml = isBatchClosed
+          ? `
+                      <div class="p-4 rounded-3xl bg-gradient-to-r from-rose-950 via-slate-900 to-slate-900 text-white border-2 border-rose-500/50 space-y-1 shadow-xl animate-flash-red text-center">
+                        <p class="text-xs font-black tracking-widest text-rose-400 uppercase">TODAY'S ORDER CLOSED AT ${displayCutoffTime}</p>
+                        <h2 class="text-sm font-extrabold uppercase text-rose-200 tracking-wider">MEET YOU TOMORROW</h2>
+                      </div>`
+          : `
+                      <div class="p-3.5 rounded-2xl border-2 border-amber-500 shadow-lg text-center space-y-1">
+                        <p class="text-xs font-black text-slate-900">⏰ Order Closing: ${displayCutoffTime} | Delivery: ${displayDeliveryTime}</p>
+                      </div>`;
+
+        let bulkPartyBannerHtml = `
+                      <div onclick="document.getElementById('bulk-modal').classList.remove('hidden')" class="p-4 rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-slate-950 shadow-xl flex items-center justify-between px-5 cursor-pointer animate-party border-2 border-amber-300">
+                        <div class="flex items-center gap-3">
+                          <span class="text-xl">🎉</span>
+                          <div>
+                            <h3 class="text-xs font-black uppercase tracking-wider">Celebrations, Events & Parties?</h3>
+                            <p class="text-[10px] font-bold opacity-90">Special Prices for Bulk Orders & Flask Tea! 📦</p>
+                          </div>
+                        </div>
+                        <span class="bg-slate-950 text-amber-400 text-[10px] font-black px-3 py-2 rounded-xl shadow uppercase flex-shrink-0">Enquire</span>
+                      </div>`;
+
+        let locationSubtitle = [
+          qrBuilding,
+          qrFloor,
+          qrRoom ? `Rm ${qrRoom}` : "",
+          qrBlock,
+        ]
+          .filter(Boolean)
+          .join(" • ");
+        let mainContentHtml = `
+                      ${bannerHtml}
+                      <div class="space-y-2">
+                        <div class="flex justify-between items-center px-1">
+                          <h2 class="text-xs font-extrabold uppercase tracking-widest opacity-60">Explore Categories</h2>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                         <!-- Ensure your button matches your exact scanner function name -->
+                          <button onclick="filterCategory('Snack')" id="cat-btn-Snack" class="cat-card glass-card p-3 rounded-3xl flex flex-col items-center gap-1.5 text-center transition cursor-pointer border border-amber-500/50 bg-amber-500/10 shadow-lg">
+                            <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-xl object-cover shadow" />
+                            <span class="text-xs font-extrabold">Snack</span>
+                          </button>
+                          <button onclick="filterCategory('Beverage')" id="cat-btn-Beverage" class="cat-card glass-card p-3 rounded-3xl flex flex-col items-center gap-1.5 text-center transition cursor-pointer opacity-75">
+                            <img src="https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-xl object-cover shadow" />
+                            <span class="text-xs font-extrabold">Beverage</span>
+                          </button>
+                          <button onclick="filterCategory('Food')" id="cat-btn-Food" class="cat-card glass-card p-3 rounded-3xl flex flex-col items-center gap-1.5 text-center transition cursor-pointer opacity-75">
+                            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-xl object-cover shadow" />
+                            <span class="text-xs font-extrabold">Food</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="space-y-3">
+                        <h2 id="special-section-title" class="text-xs font-extrabold uppercase tracking-widest text-amber-600 px-1">⭐ Today's Special (${todayDateFormatted})</h2>
+                        <div id="storefront-menu-grid" class="grid grid-cols-1 gap-3.5">
+                          <div class="glass-card p-6 rounded-3xl text-center opacity-60 text-xs">Loading items...</div>
+                        </div>
+                      </div>
+
+                      ${bulkPartyBannerHtml}
+
+                      <div class="space-y-3 pt-2">
+                        <h2 class="text-xs font-extrabold uppercase tracking-widest text-amber-600 px-1">👨‍🍳 Chef Special Menus</h2>
+                        <div id="menu-of-month-grid" class="grid grid-cols-3 gap-2.5">
+                          <p class="text-xs opacity-60 col-span-3 text-center py-2">Loading chef menus...</p>
+                        </div>
+                      </div>`;
+
+        document.getElementById("app-wrapper").innerHTML = `
+                      <header class="glass-header sticky top-0 z-40 px-3 py-3">
+                        <div class="max-w-md mx-auto flex justify-between items-center">
+                          <div class="flex items-center space-x-2.5">
+                            <img src="logo.png" alt="Logo" class="w-9 h-9 rounded-xl object-cover shadow-md border border-amber-500/30" />
+                            <div>
+                              <h1 class="font-extrabold text-xs tracking-tight">Tastea <span class="text-[9px] bg-amber-500/20 text-amber-600 px-1.5 py-0.2 rounded-full uppercase">${qrMode}</span></h1>
+            <p class="text-[10px] text-amber-600 font-medium truncate max-w-[180px]">${locationSubtitle || "Select Location"}</p>                </div>
+                          </div>
+                          <button onclick="openAccountModal()" class="glass-card px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-user-gear text-amber-600"></i> <span id="user-display-name">My Account</span>
+                          </button>
+                        </div>
+                      </header>
+                      <main class="max-w-md mx-auto w-full p-4 space-y-5 flex-1">${mainContentHtml}</main>
+                      <div id="floating-cart-bar" class="fixed bottom-4 left-0 right-0 z-40 px-4 hidden">
+                        <div class="max-w-md mx-auto glass-card p-4 rounded-3xl shadow-2xl flex justify-between items-center border-2 border-amber-500/50 bg-white/95">
+                          <div class="flex items-center gap-3 pl-2">
+                            <div class="w-11 h-11 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-slate-950 text-base shadow-md" id="cart-item-count">0</div>
+                            <div>
+                              <p class="text-[10px] opacity-75 font-bold uppercase" id="cart-bar-label">Total Amount</p>
+                              <p class="text-lg font-black text-amber-600" id="cart-total-price">₹0</p>
+                            </div>
+                          </div>
+                          <button onclick="openCheckoutModal()" class="bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black px-7 py-3.5 rounded-2xl text-xs uppercase shadow-lg cursor-pointer flex items-center gap-2">
+                            <span>ORDER</span> <i class="fa-solid fa-arrow-right"></i>
+                          </button>
+                        </div>
+                      </div>`;
+
+        loadStorefrontCatalogs();
+      }
+
+      async function checkAndRegisterCustomer(name, phone) {
+        try {
+          const snap = await db
+            .collection("customers_rows")
+            .where("phone", "==", phone)
+            .get();
+          if (snap.empty) {
+            await db.collection("customers_rows").add({
+              name,
+              phone,
+              custom_credit_limit: 50,
+              created_at: new Date().toISOString(),
+            });
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
 
-      async function initCustomerPortal() {
-        // Enforce fresh QR scanning every time by clearing stored location session if new QR parameter is provided
-        if (qrHash) {
-          localStorage.setItem("tastea_last_qr_hash", qrHash);
-        }
+      async function fetchCustomerLedgerData() {
+        const phone = localStorage.getItem("tastea_user_phone");
+        if (!phone) return;
+        let cleanPhone = phone.replace(/\D/g, "");
+        if (cleanPhone.length >= 10) cleanPhone = cleanPhone.slice(-10);
 
-        let activeQrHash =
-          qrHash || localStorage.getItem("tastea_last_qr_hash");
-
-        if (!activeQrHash) {
-          document.body.innerHTML = `
-            <div class="min-h-screen bg-gradient-to-br from-amber-500 via-orange-500 to-amber-700 flex flex-col items-center justify-between p-6 text-white font-sans w-full text-center">
-              <div class="my-auto space-y-6 max-w-lg">
-                <div class="w-28 h-28 bg-white rounded-3xl p-3 shadow-2xl mx-auto flex items-center justify-center">
-                  <img src="logo.png" alt="Tastea Logo" class="w-full h-full object-cover rounded-2xl" />
-                </div>
-                <h1 class="text-3xl font-black tracking-tight">Tastea Food & Beverage</h1>
-                <p class="text-sm text-amber-100 font-medium">Please scan your official office QR standee located at your desk or cafeteria to open today's live menu and order snacks.</p>
-                <button onclick="localStorage.removeItem('tastea_last_qr_hash'); location.href='landing.html';" class="bg-slate-900 text-amber-300 font-black px-6 py-3.5 rounded-2xl text-xs uppercase shadow-lg cursor-pointer">
-                  🔄 View Landing Page & Rescan QR
-                </button>
-              </div>
-            </div>`;
-          return;
-        }
-
-        const { data: locData, error } = await supabaseClient
-          .from("locations")
-          .select("*")
-          .eq("qr_code_hash", activeQrHash)
-          .maybeSingle();
-
-        if (error || !locData) {
-          document.getElementById("header-bldg-name").innerText =
-            "Location Not Found";
-          document.getElementById("header-bldg-location").innerText =
-            "Please rescan valid QR";
-          return;
-        }
-
-        currentLocation = locData;
-        currentBuildingDeliveryCharge = Number(locData.delivery_charge || 0);
-
-        document.getElementById("header-bldg-name").innerText =
-          locData.building_name;
-        document.getElementById("header-bldg-location").innerText =
-          `${locData.block_no || ""} - ${locData.floor_no}`;
-
-        let cutoffTimeFormatted = "12:00 PM";
-        if (locData.booking_cutoff_time) {
-          let [h, m] = locData.booking_cutoff_time.split(":");
-          let hrs = parseInt(h);
-          let ampm = hrs >= 12 ? "PM" : "AM";
-          hrs = hrs % 12 || 12;
-          cutoffTimeFormatted = `${hrs}:${m} ${ampm}`;
-        }
-        document.getElementById("banner-cutoff-time").innerText =
-          cutoffTimeFormatted;
-
-        checkUserSession();
-        await checkLiveCategoryStock();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("paid") === "true") {
-          let pendingCartJson = sessionStorage.getItem("tastea_pending_cart");
-          if (pendingCartJson) {
-            cart = JSON.parse(pendingCartJson);
-            sessionStorage.removeItem("tastea_pending_cart");
-            await finalizeOrderAfterPayment("pay_now");
-          }
-        }
-      }
-
-      async function checkLiveCategoryStock() {
-        const { data: orders } = await supabaseClient
-          .from("orders")
-          .select("items_json");
-        const { data: menu } = await supabaseClient
-          .from("menu_items")
-          .select("id, name, type");
-        let vegCount = 0,
-          nonVegCount = 0;
-        if (orders && menu) {
-          orders.forEach((ord) => {
-            if (ord.items_json) {
-              ord.items_json.forEach((i) => {
-                let itemObj = menu.find(
-                  (m) => m.name.toLowerCase() === (i.name || "").toLowerCase(),
-                );
-                let isNonVeg =
-                  (itemObj &&
-                    (itemObj.type === "non_veg" ||
-                      itemObj.type === "non-veg")) ||
-                  (i.name || "").toLowerCase().includes("chicken");
-                if (isNonVeg) nonVegCount += Number(i.qty || 1);
-                else vegCount += Number(i.qty || 1);
-              });
+        try {
+          const custSnap = await db.collection("customers_rows").get();
+          customerCreditLimit = 50;
+          custSnap.forEach((doc) => {
+            const c = doc.data();
+            let cPhone = (c.phone || "").replace(/\D/g, "");
+            if (cPhone.length >= 10) cPhone = cPhone.slice(-10);
+            if (cPhone === cleanPhone && c.custom_credit_limit !== undefined) {
+              customerCreditLimit = Number(c.custom_credit_limit);
             }
           });
-        }
-        totalVegOrderedToday = vegCount;
-        totalNonVegOrderedToday = nonVegCount;
-      }
 
-      async function checkUserSession() {
-        const savedPhone = localStorage.getItem("tastea_user_phone");
-        const savedName = localStorage.getItem("tastea_user_name");
+          const ordersSnap = await db.collection("orders_rows").get();
+          let unpaidDues = 0;
+          ordersSnap.forEach((doc) => {
+            const o = doc.data();
+            let oPhone = (o.phone || o.guestPhone || "").replace(/\D/g, "");
+            if (oPhone.length >= 10) oPhone = oPhone.slice(-10);
 
-        if (!savedPhone || !savedName) {
-          document.getElementById("auth-modal").classList.remove("hidden");
-          return;
-        }
+            if (oPhone === cleanPhone) {
+              const total = Number(o.total_amount || o.total || 0);
+              const pStatus = (
+                o.payment_status ||
+                o.paymentStatus ||
+                ""
+              ).toLowerCase();
+              const pMethod = (
+                o.paymentMethod ||
+                o.payment_method ||
+                o.mode ||
+                ""
+              ).toLowerCase();
+              const isPaidNow =
+                pStatus.includes("paid") ||
+                pMethod.includes("online") ||
+                pMethod.includes("cash") ||
+                pMethod.includes("upi");
 
-        document.getElementById("auth-modal").classList.add("hidden");
-        document.getElementById("user-badge").classList.remove("hidden");
-        document.getElementById("logged-user-name").innerText = savedName;
-
-        await refreshUserCreditStatus(savedPhone);
-        loadCustomerMenu();
-      }
-
-      async function refreshUserCreditStatus(phone) {
-        let { data: emp } = await supabaseClient
-          .from("employees")
-          .select("*")
-          .eq("phone", phone)
-          .maybeSingle();
-        if (emp) {
-          let limit = Number(emp.credit_limit || 0);
-          let due = Number(emp.due_amount || 0);
-          currentUserDue = due;
-          let available = Math.max(0, limit - due);
-
-          document.getElementById("main-user-limit-badge").innerText =
-            `Limit: ₹${limit}`;
-          document.getElementById("main-user-due-display").innerText =
-            `₹${due}`;
-          document.getElementById("main-user-avail-display").innerText =
-            `₹${available}`;
-          document
-            .getElementById("main-credit-banner")
-            .classList.remove("hidden");
-
-          const payBtn = document.getElementById("pay-due-btn");
-          if (due > 0) payBtn.classList.remove("hidden");
-          else payBtn.classList.add("hidden");
-        }
-      }
-
-      function payDuesNow() {
-        if (currentUserDue <= 0) return;
-        let payeeVpa = "9629511751@ybl";
-        let payeeName = "Tastea";
-        let transactionNote = "Tastea Due Clearance Payment";
-        let uri = `tez://upi/pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&am=${currentUserDue}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-        window.location.href = uri;
-      }
-
-      function sendAuthOtp() {
-        tempName = document.getElementById("reg-name").value.trim();
-        tempPhone = document.getElementById("reg-phone").value.trim();
-        if (!tempName || !tempPhone || tempPhone.length < 10) {
-          alert("Please enter a valid name and 10-digit mobile number.");
-          return;
-        }
-        document.getElementById("display-phone-num").innerText = tempPhone;
-        document.getElementById("step-details").classList.add("hidden");
-        document.getElementById("step-otp").classList.remove("hidden");
-      }
-
-      async function verifyAuthOtp() {
-        const otp = document.getElementById("entered-otp").value.trim();
-        if (otp !== "123456" && otp.length !== 6) {
-          alert("Invalid OTP! Please enter 123456.");
-          return;
-        }
-
-        let { data: existing } = await supabaseClient
-          .from("employees")
-          .select("*")
-          .eq("phone", tempPhone)
-          .maybeSingle();
-
-        if (!existing) {
-          await supabaseClient.from("employees").insert([
-            {
-              name: tempName,
-              phone: tempPhone,
-              current_building_id: currentLocation ? currentLocation.id : null,
-              credit_limit: 500.0,
-              due_amount: 0.0,
-            },
-          ]);
-        } else {
-          await supabaseClient
-            .from("employees")
-            .update({
-              name: tempName,
-              current_building_id: currentLocation
-                ? currentLocation.id
-                : existing.current_building_id,
-            })
-            .eq("id", existing.id);
-        }
-
-        localStorage.setItem("tastea_user_phone", tempPhone);
-        localStorage.setItem("tastea_user_name", tempName);
-
-        document.getElementById("auth-modal").classList.add("hidden");
-        document.getElementById("user-badge").classList.remove("hidden");
-        document.getElementById("logged-user-name").innerText = tempName;
-        await refreshUserCreditStatus(tempPhone);
-        loadCustomerMenu();
-      }
-
-      function togglePaymentInstructions() {
-        const paymentMode = document.querySelector(
-          'input[name="payment-mode"]:checked',
-        ).value;
-        const payNowBox = document.getElementById("pay-now-box");
-        const payLaterBox = document.getElementById("pay-later-box");
-        const payLaterBtn = document.getElementById("pay-later-btn");
-        const payNowLabel = document.getElementById("pay-now-label");
-        const payLaterLabel = document.getElementById("pay-later-label");
-
-        if (paymentMode === "pay_now") {
-          payNowBox.classList.remove("hidden");
-          payLaterBox.classList.add("hidden");
-          payLaterBtn.classList.add("hidden");
-          payNowLabel.className =
-            "border-2 border-amber-300 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-amber-50 font-bold transition";
-          payLaterLabel.className =
-            "border-2 border-slate-200 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 font-bold transition";
-        } else {
-          payNowBox.classList.add("hidden");
-          payLaterBox.classList.remove("hidden");
-          payLaterBtn.classList.remove("hidden");
-          payLaterLabel.className =
-            "border-2 border-amber-300 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-amber-50 font-bold transition";
-          payNowLabel.className =
-            "border-2 border-slate-200 p-3.5 rounded-2xl flex items-center gap-2 cursor-pointer bg-slate-50 hover:bg-slate-100 font-bold transition";
-        }
-      }
-
-      function launchUpiAppAndConfirm(appType) {
-        let subtotal = 0;
-        Object.values(cart).forEach((i) => {
-          subtotal += i.price * i.qty;
-        });
-        if (subtotal <= 0) return;
-
-        let totalPrice =
-          subtotal +
-          (Object.keys(cart).length > 0 ? currentBuildingDeliveryCharge : 0);
-        let payeeVpa = "9629511751@ybl";
-        let payeeName = "Tastea";
-        let transactionNote = "Tastea Office SnackPass";
-        let returnUrl =
-          window.location.origin +
-          window.location.pathname +
-          "?qr=" +
-          qrHash +
-          "&paid=true";
-
-        let uri = `upi://pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&am=${totalPrice}&cu=INR&tn=${encodeURIComponent(transactionNote)}&url=${encodeURIComponent(returnUrl)}`;
-        if (appType === "gpay")
-          uri = `tez://upi/pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&am=${totalPrice}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-        if (appType === "phonepe")
-          uri = `phonepe://pay?pa=${payeeVpa}&pn=${encodeURIComponent(payeeName)}&am=${totalPrice}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-
-        sessionStorage.setItem("tastea_pending_cart", JSON.stringify(cart));
-        window.location.href = uri;
-      }
-
-      async function finalizeOrderAfterPayment(paymentMode) {
-        const phone = localStorage.getItem("tastea_user_phone");
-        if (!phone || Object.keys(cart).length === 0) return;
-
-        let subtotal = 0,
-          itemsArr = [];
-        Object.values(cart).forEach((i) => {
-          subtotal += i.price * i.qty;
-          itemsArr.push({ id: i.id, name: i.name, price: i.price, qty: i.qty });
-        });
-
-        let totalPrice =
-          subtotal +
-          (Object.keys(cart).length > 0 ? currentBuildingDeliveryCharge : 0);
-
-        let { data: existingEmp } = await supabaseClient
-          .from("employees")
-          .select("*")
-          .eq("phone", phone)
-          .maybeSingle();
-        if (!existingEmp) {
-          let userName = localStorage.getItem("tastea_user_name") || "Employee";
-          let { data: newEmp } = await supabaseClient
-            .from("employees")
-            .insert([
-              {
-                name: userName,
-                phone: phone,
-                current_building_id: currentLocation
-                  ? currentLocation.id
-                  : null,
-                credit_limit: 0,
-                due_amount: 0,
-              },
-            ])
-            .select()
-            .single();
-          existingEmp = newEmp;
-        }
-
-        await supabaseClient.from("orders").insert([
-          {
-            location_id: currentLocation ? currentLocation.id : null,
-            employee_id: existingEmp.id,
-            items_json: itemsArr,
-            total_amount: totalPrice,
-            payment_mode: paymentMode,
-            is_delivered: false,
-          },
-        ]);
-
-        showSuccessModal(totalPrice, paymentMode);
-        cart = {};
-        updateCartUI();
-        closeCartModal();
-        await refreshUserCreditStatus(phone);
-        loadCustomerMenu();
-      }
-
-      async function submitOrder() {
-        const phone = localStorage.getItem("tastea_user_phone");
-        if (!phone) {
-          document.getElementById("auth-modal").classList.remove("hidden");
-          return;
-        }
-
-        let subtotal = 0,
-          itemsArr = [];
-        Object.values(cart).forEach((i) => {
-          subtotal += i.price * i.qty;
-          itemsArr.push({ id: i.id, name: i.name, price: i.price, qty: i.qty });
-        });
-
-        let totalPrice =
-          subtotal +
-          (Object.keys(cart).length > 0 ? currentBuildingDeliveryCharge : 0);
-
-        let { data: existingEmp } = await supabaseClient
-          .from("employees")
-          .select("*")
-          .eq("phone", phone)
-          .maybeSingle();
-        if (!existingEmp) {
-          let userName = localStorage.getItem("tastea_user_name") || "Employee";
-          let { data: newEmp } = await supabaseClient
-            .from("employees")
-            .insert([
-              {
-                name: userName,
-                phone: phone,
-                current_building_id: currentLocation
-                  ? currentLocation.id
-                  : null,
-                credit_limit: 0,
-                due_amount: 0,
-              },
-            ])
-            .select()
-            .single();
-          existingEmp = newEmp;
-        }
-
-        let limit = Number(existingEmp.credit_limit || 0);
-        let currentDue = Number(existingEmp.due_amount || 0);
-
-        if (limit <= 0) {
-          alert(
-            "❌ Your credit limit is ₹0! Pay Later requires admin credit approval. Please use 'Pay Now (UPI)'.",
-          );
-          return;
-        }
-
-        if (currentDue + totalPrice > limit) {
-          alert(
-            "⚠️ Individual credit limit exceeded! Available limit is insufficient.",
-          );
-          return;
-        }
-
-        await supabaseClient
-          .from("employees")
-          .update({ due_amount: currentDue + totalPrice })
-          .eq("id", existingEmp.id);
-        await supabaseClient.from("orders").insert([
-          {
-            location_id: currentLocation ? currentLocation.id : null,
-            employee_id: existingEmp.id,
-            items_json: itemsArr,
-            total_amount: totalPrice,
-            payment_mode: "pay_later",
-            is_delivered: false,
-          },
-        ]);
-
-        showSuccessModal(totalPrice, "pay_later");
-        cart = {};
-        updateCartUI();
-        closeCartModal();
-        await refreshUserCreditStatus(phone);
-        loadCustomerMenu();
-      }
-
-      async function loadCustomerMenu() {
-        const { data } = await supabaseClient
-          .from("menu_items")
-          .select("*")
-          .eq("is_todays_special", true);
-        menuItems = data || [];
-        let html = "";
-        if (menuItems.length > 0) {
-          menuItems.forEach((m) => {
-            let qty = cart[m.id] ? cart[m.id].qty : 0;
-            let isNonVeg =
-              (m.type || "").toLowerCase().includes("non") ||
-              m.name.toLowerCase().includes("chicken");
-            let currentCategoryUsed = isNonVeg
-              ? totalNonVegOrderedToday
-              : totalVegOrderedToday;
-            let maxQuota = isNonVeg ? NONVEG_MAX_QUOTA : VEG_MAX_QUOTA;
-            let isSoldOut = currentCategoryUsed >= maxQuota;
-            let slotsAvailable = Math.max(0, maxQuota - currentCategoryUsed);
-
-            let categoryBadge = isNonVeg
-              ? `<span class="bg-rose-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-xs inline-flex items-center gap-1 whitespace-nowrap">🔴 NON-VEG</span>`
-              : `<span class="bg-emerald-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full shadow-xs inline-flex items-center gap-1 whitespace-nowrap">🟢 VEG</span>`;
-            let borderStyle = isNonVeg
-              ? "border-rose-300 hover:border-rose-500 bg-gradient-to-br from-white to-rose-50/30"
-              : "border-emerald-300 hover:border-emerald-500 bg-gradient-to-br from-white to-emerald-50/30";
-
-            html += `
-              <div class="p-3.5 rounded-2xl shadow-sm border-2 ${borderStyle} flex items-center justify-between gap-3 transition">
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                  ${m.image_url ? `<img src="${m.image_url}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-slate-200 shadow-xs flex-shrink-0"/>` : `<div class="w-16 h-16 sm:w-20 sm:h-20 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 shadow-xs flex-shrink-0 text-2xl"><i class="fa-solid fa-mug-hot"></i></div>`}
-                  <div class="space-y-1 min-w-0 flex-1 text-left">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                      ${categoryBadge}
-                      <span class="text-[9px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-lg flashing-badge shadow-xs whitespace-nowrap">⚡ ${slotsAvailable} LEFT</span>
-                    </div>
-                    <h4 class="font-black text-slate-900 text-xs sm:text-sm leading-tight truncate text-left">${m.name}</h4>
-                    <p class="text-sm sm:text-base font-black text-slate-900 text-left">₹${m.price}</p>
-                  </div>
-                </div>
-                <div class="flex-shrink-0 pl-1">
-                  ${isSoldOut ? `<span class="bg-rose-600 text-white font-black px-3 py-1.5 rounded-xl text-[10px] uppercase">Sold Out</span>` : qty === 0 ? `<button onclick="updateCart('${m.id}', 1)" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition cursor-pointer">Add +</button>` : `<div class="flex items-center gap-1.5 bg-white border border-amber-300 p-1 rounded-xl shadow-inner"><button onclick="updateCart('${m.id}', -1)" class="w-7 h-7 bg-slate-100 rounded-lg font-black flex items-center justify-center text-slate-800 cursor-pointer text-sm">-</button><span class="font-black text-xs px-1 text-slate-900">${qty}</span><button onclick="updateCart('${m.id}', 1)" class="w-7 h-7 bg-amber-400 text-slate-950 rounded-lg font-black flex items-center justify-center cursor-pointer text-sm">+</button></div>`}
-                </div>
-              </div>`;
+              if (
+                !isPaidNow &&
+                total > 0 &&
+                (o.status || "").toLowerCase() !== "delivered"
+              ) {
+                unpaidDues += total;
+              }
+            }
           });
-        } else {
-          html = `<div class="col-span-full p-6 bg-white rounded-2xl text-center text-slate-400 text-xs border border-amber-100">No snacks assigned for today yet.</div>`;
+          currentUnpaidDues = unpaidDues;
+          availableCreditBalance = Math.max(
+            0,
+            customerCreditLimit - unpaidDues,
+          );
+        } catch (e) {
+          console.error(e);
         }
-        document.getElementById("menu-items-grid").innerHTML = html;
       }
 
-      function updateCart(itemId, change) {
-        const item = menuItems.find((i) => i.id === itemId);
-        if (!item) return;
-        if (!cart[itemId]) {
-          if (change > 0)
-            cart[itemId] = {
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              type: item.type,
-              qty: 1,
-            };
-        } else {
-          cart[itemId].qty += change;
-          if (cart[itemId].qty <= 0) delete cart[itemId];
+      function startCameraScanner() {
+        const triggerBtn = document.getElementById("scan-trigger-btn");
+        const readerDiv = document.getElementById("reader");
+        if (triggerBtn) triggerBtn.classList.add("hidden");
+        if (readerDiv) readerDiv.classList.remove("hidden");
+        const html5QrCode = new Html5Qrcode("reader");
+        html5QrCode
+          .start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+              html5QrCode.stop().then(() => {
+                window.location.href += decodedText;
+              });
+            },
+          )
+          .catch(() => {
+            if (triggerBtn) triggerBtn.classList.remove("hidden");
+            if (readerDiv) readerDiv.classList.add("hidden");
+          });
+      }
+
+      async function verifyAndSaveUser() {
+        const name = document.getElementById("auth-name").value.trim();
+        const phone = document.getElementById("auth-phone").value.trim();
+        if (!name || phone.length < 10) {
+          alert("Please enter valid name and phone.");
+          return;
+        }
+        localStorage.setItem("tastea_user_name", name);
+        localStorage.setItem("tastea_user_phone", phone);
+        await db.collection("customers_rows").add({
+          name,
+          phone,
+          custom_credit_limit: 50,
+          created_at: new Date().toISOString(),
+        });
+        document.getElementById("auth-modal").classList.add("hidden");
+        initializeStorefront();
+      }
+
+      async function loadStorefrontCatalogs() {
+        try {
+          const snap = await db.collection("menu_catalog").get();
+          todaysSpecialCache = [];
+          menuOfMonthCache = [];
+
+          snap.forEach((doc) => {
+            const data = { id: doc.id, ...doc.data() };
+            if (data.is_todays_special) todaysSpecialCache.push(data);
+            else menuOfMonthCache.push(data);
+          });
+
+          renderMenuGrid();
+          renderMenuOfMonthGrid();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function filterCategory(cat) {
+        activeCategory = cat;
+        ["Snack", "Beverage", "Food"].forEach((c) => {
+          const btn = document.getElementById(`cat-btn-${c}`);
+          if (btn)
+            btn.className =
+              c === cat
+                ? "cat-card glass-card p-3 rounded-3xl flex flex-col items-center gap-1.5 text-center transition cursor-pointer border border-amber-500/50 bg-amber-500/10 shadow-lg"
+                : "cat-card glass-card p-3 rounded-3xl flex flex-col items-center gap-1.5 text-center transition cursor-pointer opacity-75";
+        });
+        renderMenuGrid();
+        renderMenuOfMonthGrid();
+      }
+
+      function renderMenuGrid() {
+        const container = document.getElementById("storefront-menu-grid");
+        if (!container) return;
+        let html = "";
+        const filtered = todaysSpecialCache.filter((i) =>
+          (i.category || "")
+            .toLowerCase()
+            .includes(activeCategory.toLowerCase()),
+        );
+        const itemsToDisplay =
+          filtered.length > 0 ? filtered : todaysSpecialCache;
+        const isBatchClosed = checkIfBatchClosed(buildingTimings.closedTime);
+
+        itemsToDisplay.forEach((item) => {
+          const basePrice = Number(item.basePrice || item.price || 30);
+          const itemPrice =
+            buildingPricesMap &&
+            buildingPricesMap[item.id] !== undefined &&
+            buildingPricesMap[item.id] !== ""
+              ? Number(buildingPricesMap[item.id])
+              : basePrice;
+
+          let priceDisplayHtml =
+            itemPrice < basePrice
+              ? `<span class="line-through text-xs opacity-50 mr-1.5">₹${basePrice}</span> <span class="text-xs font-black text-amber-600">₹${itemPrice}</span>`
+              : `<span class="text-xs font-black text-amber-600">₹${itemPrice}</span>`;
+
+          const isNonVeg = (item.dietary || "").toLowerCase().includes("non");
+          const dietaryBadge = isNonVeg
+            ? `<span class="nonveg-symbol ml-1" title="Non-Veg"><span class="nonveg-dot"></span></span>`
+            : `<span class="veg-symbol ml-1" title="Veg"><span class="veg-dot"></span></span>`;
+
+          const imageUrl =
+            item.image ||
+            "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150&auto=format&fit=crop&q=80";
+          const qtyInCart = cart[item.id] ? cart[item.id].qty : 0;
+
+          if (isBatchClosed) {
+            html += `<div class="glass-card p-3 rounded-3xl flex items-center gap-3 border border-slate-300 bg-slate-100/90 opacity-80 shadow-sm col-span-full">
+                          <img src="${imageUrl}" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-sm grayscale" />
+                          <div class="space-y-0.5 flex-1">
+                            <h4 class="font-bold text-xs text-slate-700">${item.name} ${dietaryBadge}</h4>
+                            <p class="text-[10px] font-black text-slate-500">${priceDisplayHtml}</p>
+                          </div>
+                          <span class="px-3 py-1 bg-rose-600 text-white font-black text-[9px] uppercase rounded-xl animate-flash-red flex-shrink-0 shadow">CLOSED TODAY</span>
+                        </div>`;
+          } else {
+            const btnHtml =
+              qtyInCart === 0
+                ? `<button onclick="addToCart('${item.id}', '${item.name}', ${itemPrice})" class="bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-2xl text-xs cursor-pointer shadow">Add</button>`
+                : `<div class="flex items-center gap-2 glass-card px-2 py-1 rounded-2xl">
+                             <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-xl bg-amber-500/20 text-amber-600 font-bold cursor-pointer">-</button>
+                             <span class="text-xs font-black">${qtyInCart}</span>
+                             <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-xl bg-amber-500 text-slate-950 font-bold cursor-pointer">+</button>
+                           </div>`;
+            html += `<div class="glass-card p-4 rounded-3xl flex items-center gap-4 border-2 border-amber-500/40 shadow-lg col-span-full">
+                          <img src="${imageUrl}" class="w-16 h-16 rounded-2xl object-cover border border-amber-500/30 shadow-md" />
+                          <div class="space-y-1 flex-1">
+                            <h3 class="font-extrabold text-sm">${item.name} ${dietaryBadge}</h3>
+                            <p>${priceDisplayHtml}</p>
+                          </div>
+                          <div>${btnHtml}</div>
+                        </div>`;
+          }
+        });
+        container.className = isBatchClosed
+          ? "grid grid-cols-1 gap-2.5"
+          : "grid grid-cols-1 gap-3.5";
+        container.innerHTML =
+          html ||
+          `<div class="glass-card p-6 rounded-3xl text-center opacity-60 text-xs col-span-full">No items available.</div>`;
+      }
+
+      function renderMenuOfMonthGrid() {
+        const container = document.getElementById("menu-of-month-grid");
+        if (!container) return;
+        let html = "";
+        const filteredChef = menuOfMonthCache.filter((i) =>
+          (i.category || "")
+            .toLowerCase()
+            .includes(activeCategory.toLowerCase()),
+        );
+        const chefItemsToDisplay =
+          filteredChef.length > 0 ? filteredChef : menuOfMonthCache;
+
+        chefItemsToDisplay.forEach((item) => {
+          const basePrice = Number(item.basePrice || item.price || 30);
+          const itemPrice =
+            buildingPricesMap &&
+            buildingPricesMap[item.id] !== undefined &&
+            buildingPricesMap[item.id] !== ""
+              ? Number(buildingPricesMap[item.id])
+              : basePrice;
+
+          let priceDisplayHtml = `<span class="text-[10px] font-black text-amber-600">₹${itemPrice}</span>`;
+          const isNonVeg = (item.dietary || "").toLowerCase().includes("non");
+          const dietaryBadge = isNonVeg
+            ? `<span class="nonveg-symbol" title="Non-Veg"><span class="nonveg-dot"></span></span>`
+            : `<span class="veg-symbol" title="Veg"><span class="veg-dot"></span></span>`;
+
+          const imageUrl =
+            item.image ||
+            "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=150&auto=format&fit=crop&q=80";
+
+          html += `<div class="glass-card p-2.5 rounded-2xl flex flex-col items-center text-center space-y-1 border border-slate-200 shadow-sm">
+                        <img src="${imageUrl}" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-slate-200" />
+                        <h4 class="font-bold text-[11px] truncate w-full flex items-center justify-center gap-1"><span class="truncate">${item.name}</span> ${dietaryBadge}</h4>
+                        <p>${priceDisplayHtml}</p>
+                      </div>`;
+        });
+        container.innerHTML =
+          html ||
+          `<p class='text-xs opacity-60 col-span-3 text-center py-2'>No chef menus available.</p>`;
+      }
+
+      function addToCart(id, name, price) {
+        cart[id] = { name, price, qty: (cart[id]?.qty || 0) + 1 };
+        updateCartUI();
+        renderMenuGrid();
+      }
+
+      function updateCartQty(id, delta) {
+        if (cart[id]) {
+          cart[id].qty += delta;
+          if (cart[id].qty <= 0) delete cart[id];
         }
         updateCartUI();
-        loadCustomerMenu();
+        renderMenuGrid();
       }
 
       function updateCartUI() {
-        let totalItems = 0,
-          subtotal = 0;
+        let totalQty = 0,
+          totalPrice = 0;
         Object.values(cart).forEach((i) => {
-          totalItems += i.qty;
-          subtotal += i.price * i.qty;
+          totalQty += i.qty;
+          totalPrice += i.price * i.qty;
         });
-
-        // Display ONLY item subtotal on the main floating bar, keeping delivery charges inside order summary modal only
-        document.getElementById("floating-total").innerText = `₹${subtotal}`;
-
-        let grandTotal =
-          subtotal + (totalItems > 0 ? currentBuildingDeliveryCharge : 0);
-        document.getElementById("modal-grand-total").innerText =
-          `₹${grandTotal}`;
-
-        if (totalItems > 0)
-          document.getElementById("checkout-bar").classList.remove("hidden");
-        else document.getElementById("checkout-bar").classList.add("hidden");
-      }
-
-      function openCartModal() {
-        if (Object.keys(cart).length === 0) return;
-        let html = "";
-        let subtotal = 0;
-
-        Object.values(cart).forEach((i) => {
-          subtotal += i.price * i.qty;
-          html += `<div class="py-2 flex justify-between items-center text-xs"><div><h5 class="font-extrabold text-slate-900">${i.name}</h5><p class="text-slate-500 text-[10px]">₹${i.price} x ${i.qty}</p></div><span class="font-black text-slate-900">₹${i.price * i.qty}</span></div>`;
-        });
-
-        if (currentBuildingDeliveryCharge > 0) {
-          html += `<div class="py-2 flex justify-between items-center text-xs text-indigo-700 font-bold border-t border-dashed"><span>Delivery Charge</span><span>₹${currentBuildingDeliveryCharge}</span></div>`;
-        }
-
-        document.getElementById("cart-items-list").innerHTML = html;
-        document.getElementById("cart-modal").classList.remove("hidden");
-        updateCartUI();
-        togglePaymentInstructions();
-      }
-
-      function closeCartModal() {
-        document.getElementById("cart-modal").classList.add("hidden");
-      }
-
-      function showSuccessModal(total, mode) {
-        document.getElementById("succ-bldg").innerText = currentLocation
-          ? currentLocation.building_name
-          : "Office Desk";
-        document.getElementById("succ-mode").innerText =
-          mode === "pay_later" ? "Pay Later (Credit)" : "Paid (UPI)";
-        document.getElementById("succ-total").innerText = "₹" + total;
+        document.getElementById("cart-item-count").innerText = totalQty;
+        document.getElementById("cart-total-price").innerText =
+          `₹${totalPrice + qrDeliveryCharge}`;
         document
-          .getElementById("order-success-modal")
-          .classList.remove("hidden");
+          .getElementById("floating-cart-bar")
+          .classList.toggle("hidden", totalQty === 0);
+      }
+      function showOrderConfirmationPopup(orderId, totalAmount, building) {
+        const modal = document.createElement("div");
+        modal.style.cssText =
+          "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999;";
+        modal.innerHTML = `
+          <div style="background:#1e293b; color:#f8fafc; padding:24px; border-radius:12px; max-width:400px; text-align:center; border:2px solid #34d399;">
+            <h2 style="color:#34d399; margin-top:0;">🎉 Order Confirmed!</h2>
+            <p style="font-size:14px; color:#cbd5e1;">Your order has been successfully placed for <strong>${building}</strong>.</p>
+            <div style="background:#0f172a; padding:12px; border-radius:8px; margin:16px 0; font-size:16px;">
+              Cart Total: <strong style="color:#fbbf24;">₹${totalAmount}</strong>
+            </div>
+            <button onclick="this.closest('div').parentElement.remove(); location.reload();" style="background:#34d399; color:#030712; border:none; padding:10px 20px; font-weight:bold; border-radius:6px; cursor:pointer; width:100%;">OK</button>
+          </div>`;
+        document.body.appendChild(modal);
       }
 
-      function closeSuccessModal() {
-        document.getElementById("order-success-modal").classList.add("hidden");
+      function showCreditLimitExceededWarning(limit, attemptedAmount) {
+        const modal = document.createElement("div");
+        modal.style.cssText =
+          "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999;";
+        modal.innerHTML = `
+          <div style="background:#1e293b; color:#f8fafc; padding:24px; border-radius:12px; max-width:400px; text-align:center; border:2px solid #ef4444;">
+            <h2 style="color:#ef4444; margin-top:0;">⚠️ Credit Limit Exceeded</h2>
+            <p style="font-size:14px; color:#cbd5e1;">Your current credit limit is <strong style="color:#fbbf24;">₹${limit}</strong>, but your total order/due amount is <strong style="color:#ef4444;">₹${attemptedAmount}</strong>.</p>
+            <p style="font-size:12px; color:#94a3b8;">Please clear your pending dues or choose instant digital payment to proceed.</p>
+            <button onclick="this.closest('div').parentElement.remove();" style="background:#ef4444; color:#ffffff; border:none; padding:10px 20px; font-weight:bold; border-radius:6px; cursor:pointer; width:100%;">Got It</button>
+          </div>`;
+        document.body.appendChild(modal);
       }
 
-      async function openHistoryModal() {
+      function sendBulkEnquiryWhatsApp() {
+        const name =
+          localStorage.getItem("tastea_user_name") || "Guest Manager";
+        const phone = localStorage.getItem("tastea_user_phone") || "N/A";
+        const notes = document.getElementById("bulk-notes").value.trim();
+        if (!notes) {
+          alert("Please enter your event requirements.");
+          return;
+        }
+        const msg = `🎉 *SPECIAL PRICE / PARTY ENQUIRY* 🎉%0A*Name:* ${encodeURIComponent(name)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Requirements:* ${encodeURIComponent(notes)}%0A*Location:* ${encodeURIComponent(qrBuilding)}`;
+        window.open(`https://wa.me/918754991879?text=${msg}`, "_blank");
+        document.getElementById("bulk-modal").classList.add("hidden");
+      }
+
+      async function openAccountModal() {
         const phone = localStorage.getItem("tastea_user_phone");
         if (!phone) {
           document.getElementById("auth-modal").classList.remove("hidden");
           return;
         }
-        document.getElementById("history-modal").classList.remove("hidden");
 
-        let { data: emp } = await supabaseClient
-          .from("employees")
-          .select("*")
-          .eq("phone", phone)
-          .maybeSingle();
-        if (!emp) return;
+        let cleanPhone = phone.replace(/\D/g, "");
+        if (cleanPhone.length >= 10) cleanPhone = cleanPhone.slice(-10);
 
-        let { data: orders } = await supabaseClient
-          .from("orders")
-          .select("*, locations(building_name, floor_no)")
-          .eq("employee_id", emp.id)
-          .order("created_at", { ascending: false });
-        let historyContainer = document.getElementById("user-history-list");
-        if (orders && orders.length > 0) {
-          let html = "";
-          orders.forEach((ord) => {
-            let dateStr = new Date(ord.created_at).toLocaleString();
-            let bldg = ord.locations
-              ? `${ord.locations.building_name} (${ord.locations.floor_no})`
-              : "Office Desk";
-            let itemsStr = (ord.items_json || [])
-              .map((i) => `${i.name} (x${i.qty})`)
-              .join(", ");
-            html += `<div class="bg-slate-50 p-3 rounded-xl border space-y-1"><div class="flex justify-between text-[10px] text-slate-500 font-bold"><span>${dateStr}</span><span class="uppercase">${ord.payment_mode}</span></div><div class="font-extrabold text-xs">🏢 ${bldg}</div><div class="text-slate-600">${itemsStr}</div><div class="text-right font-black text-amber-600 text-sm">₹${ord.total_amount}</div></div>`;
+        document.getElementById("acc-name").value =
+          localStorage.getItem("tastea_user_name") || "";
+        document.getElementById("acc-phone").value = phone;
+        document.getElementById("account-user-subtitle").innerText =
+          `Phone: ${phone}`;
+        document.getElementById("account-modal").classList.remove("hidden");
+
+        try {
+          await fetchCustomerLedgerData();
+          let historyHtml = "";
+
+          const ordersSnap = await db.collection("orders_rows").get();
+          ordersSnap.forEach((doc) => {
+            const o = doc.data();
+            let oPhone = (o.phone || o.guestPhone || "").replace(/\D/g, "");
+            if (oPhone.length >= 10) oPhone = oPhone.slice(-10);
+
+            if (oPhone === cleanPhone) {
+              const total = Number(o.total_amount || o.total || 0);
+              const dateStr = o.created_at
+                ? new Date(o.created_at).toLocaleDateString()
+                : "N/A";
+              historyHtml += `<div class="p-2.5 rounded-xl glass-card flex justify-between items-center text-xs">
+                            <div><strong class="text-amber-600">₹${total}</strong><br/><span class="text-[10px] opacity-60">${dateStr}</span></div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 uppercase">${o.status || "Pending"}</span>
+                          </div>`;
+            }
           });
-          historyContainer.innerHTML = html;
-        } else {
-          historyContainer.innerHTML = `<p class="text-center text-slate-400 py-4">No past orders found.</p>`;
+
+          document.getElementById("ledger-credit-limit").innerText =
+            `₹${customerCreditLimit}`;
+          document.getElementById("ledger-total-due").innerText =
+            `₹${currentUnpaidDues}`;
+          document.getElementById("ledger-available-limit").innerText =
+            `₹${availableCreditBalance}`;
+
+          const payDuesBtn = document.getElementById("pay-dues-btn");
+          if (currentUnpaidDues > 0) {
+            payDuesBtn.classList.remove("hidden");
+            payDuesBtn.innerText = `Pay Clear Dues (₹${currentUnpaidDues}) via UPI ⚡`;
+          } else {
+            payDuesBtn.classList.add("hidden");
+          }
+
+          document.getElementById("customer-orders-history-list").innerHTML =
+            historyHtml ||
+            `<p class="text-xs text-center opacity-60 py-2">No past orders found.</p>`;
+        } catch (e) {
+          console.error(e);
         }
       }
 
-      function closeHistoryModal() {
-        document.getElementById("history-modal").classList.add("hidden");
+      async function payLedgerDuesViaRazorpay() {
+        const phone = localStorage.getItem("tastea_user_phone");
+        const name = localStorage.getItem("tastea_user_name") || "Guest";
+        if (!currentUnpaidDues || currentUnpaidDues <= 0) {
+          alert("No pending dues to clear!");
+          return;
+        }
+
+        const options = {
+          key: "rzp_live_Tajh1q82Y7hRNG",
+          amount: Math.round(currentUnpaidDues * 100),
+          currency: "INR",
+          name: "Tastea Food & Beverage",
+          description: "Clear Pending Dues",
+          handler: async function (response) {
+            alert("Dues cleared successfully via UPI!");
+            document.getElementById("account-modal").classList.add("hidden");
+            window.location.reload();
+          },
+          prefill: { name: name, contact: phone },
+          theme: { color: "#f59e0b" },
+        };
+        try {
+          const rzp = new Razorpay(options);
+          rzp.open();
+        } catch (err) {
+          alert("Razorpay could not be initiated.");
+        }
       }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        initCustomerPortal();
-      });
+      async function updateUserProfile() {
+        const name = document.getElementById("acc-name").value.trim();
+        const phone = document.getElementById("acc-phone").value.trim();
+        if (!name || !phone) {
+          alert("Please enter name and phone.");
+          return;
+        }
+        localStorage.setItem("tastea_user_name", name);
+        localStorage.setItem("tastea_user_phone", phone);
+        alert("Profile updated successfully!");
+        document.getElementById("account-modal").classList.add("hidden");
+        window.location.reload();
+      }
+
+      async function openCheckoutModal() {
+        const phone = localStorage.getItem("tastea_user_phone");
+        if (!phone) {
+          document.getElementById("auth-modal").classList.remove("hidden");
+          return;
+        }
+
+        await fetchCustomerLedgerData();
+
+        document.getElementById("customer-location-display").value = [
+          qrBuilding,
+          qrBlock,
+          qrFloor,
+          qrRoom,
+        ]
+          .filter(Boolean)
+          .join(" • ");
+
+        let itemsHtml = "";
+        let subtotal = 0;
+        Object.values(cart).forEach((i) => {
+          subtotal += i.price * i.qty;
+          itemsHtml += `<div class="flex justify-between text-xs font-bold"><span>${i.name} (x${i.qty})</span><span>₹${i.price * i.qty}</span></div>`;
+        });
+        document.getElementById("checkout-items-list").innerHTML = itemsHtml;
+        document.getElementById("modal-available-balance").innerText =
+          `₹${availableCreditBalance}`;
+        document.getElementById("checkout-modal").classList.remove("hidden");
+      }
+
+      async function submitOrderToFirestore() {
+        const phone = localStorage.getItem("tastea_user_phone");
+        const guestName = localStorage.getItem("tastea_user_name") || "Guest";
+        let subtotal = 0,
+          itemsArr = [];
+        Object.values(cart).forEach((i) => {
+          subtotal += i.price * i.qty;
+          itemsArr.push({ name: i.name, price: i.price, qty: i.qty });
+        });
+        const totalAmount = subtotal + qrDeliveryCharge;
+        const paymentMethod =
+          document.querySelector('input[name="payment-method"]:checked')
+            ?.value || "Pay Later";
+
+        await fetchCustomerLedgerData();
+
+        if (
+          paymentMethod === "Pay Later" &&
+          totalAmount > availableCreditBalance
+        ) {
+          document.getElementById("checkout-modal").classList.add("hidden");
+          document.getElementById("credit-limit-msg").innerText =
+            `Your order value (₹${totalAmount}) exceeds your available credit limit (₹${availableCreditBalance}). Please pay online via UPI to proceed.`;
+          document
+            .getElementById("credit-limit-modal")
+            .classList.remove("hidden");
+          return;
+        }
+        const currentBuilding = localStorage.getItem("tastea_scanned_building");
+
+        // தம்ப் ரூல்: பில்டிங் பெயர் இல்லாவிட்டால் ஆர்டர் எடுக்கக்கூடாது
+        if (!currentBuilding || currentBuilding === "General Office") {
+          alert(
+            "⚠️ கனிவூஉக: உங்களது கம்பெனி QR கோடை ஸ்கேன் செய்து சரியான டெலிவரி லொகேஷனை உறுதிப்படுத்தவும்!",
+          );
+          return; // ஆர்டர் செல்லாது
+        }
+
+        // 👇 PASTE/USE THE PAYLOAD HERE WHEN SENDING TO FIRESTORE 👇
+        const orderPayload = {
+          name: customerName,
+          phone: customerPhone,
+          buildingName:
+            localStorage.getItem("tastea_scanned_building") || "General Office",
+          floorNo: localStorage.getItem("tastea_scanned_floor") || "",
+          roomNo: localStorage.getItem("tastea_scanned_room") || "",
+          items: cartItemsArray,
+          total_amount: calculateCartTotal(),
+          payment_method: selectedPaymentMethod, // e.g. "Pay Later" or "Online"
+          payment_status:
+            selectedPaymentMethod === "Pay Later" ? "pending" : "paid",
+          status: "pending",
+          created_at: new Date().toISOString(),
+        };
+
+        try {
+          await db.collection("orders_rows").add(orderPayload);
+          alert("Order placed successfully!");
+          // Reset cart and redirect or clear inputs...
+        } catch (e) {
+          alert("Error placing order: " + e.message);
+        }
+      }
+      function payViaUPIFromModal() {
+        document.getElementById("credit-limit-modal").classList.add("hidden");
+        const phone = localStorage.getItem("tastea_user_phone");
+        const guestName = localStorage.getItem("tastea_user_name") || "Guest";
+        let subtotal = 0,
+          itemsArr = [];
+        Object.values(cart).forEach((i) => {
+          subtotal += i.price * i.qty;
+          itemsArr.push({ name: i.name, price: i.price, qty: i.qty });
+        });
+        const totalAmount = subtotal + qrDeliveryCharge;
+        triggerRazorpayPayment(guestName, phone, itemsArr, totalAmount);
+      }
+
+      function triggerRazorpayPayment(guestName, phone, itemsArr, totalAmount) {
+        const options = {
+          key: "rzp_live_Tajh1q82Y7hRNG",
+          amount: Math.round(totalAmount * 100),
+          currency: "INR",
+          name: "Tastea Food & Beverage",
+          description: "Online Order Payment",
+          handler: async function (response) {
+            await saveOrderDataToFirebase(
+              guestName,
+              phone,
+              itemsArr,
+              totalAmount,
+              "Online (Razorpay)",
+              "paid",
+            );
+          },
+          prefill: { name: guestName, contact: phone },
+          theme: { color: "#f59e0b" },
+        };
+        try {
+          const rzp = new Razorpay(options);
+          rzp.on("payment.failed", function (response) {
+            alert("Payment Failed: " + response.error.description);
+          });
+          rzp.open();
+        } catch (err) {
+          alert("Razorpay could not be initiated.");
+        }
+      }
+
+      async function saveOrderDataToFirebase(
+        guestName,
+        phone,
+        itemsArr,
+        totalAmount,
+        mode,
+        status,
+      ) {
+        await db.collection("orders_rows").add({
+          buildingName: qrBuilding,
+          blockNo: qrBlock,
+          floorNo: qrFloor,
+          roomNumber: qrRoom,
+          guestName,
+          phone,
+          items_json: itemsArr,
+          total_amount: totalAmount,
+          payment_mode: mode,
+          payment_status: status,
+          order_mode: qrMode || "scheduled",
+          created_at: new Date().toISOString(),
+        });
+        cart = {};
+        updateCartUI();
+        document.getElementById("checkout-modal").classList.add("hidden");
+        document.getElementById("credit-limit-modal").classList.add("hidden");
+        alert("Order placed successfully!");
+        loadStorefrontCatalogs();
+      }
     </script>
   </body>
 </html>
