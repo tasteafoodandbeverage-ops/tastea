@@ -1,0 +1,2614 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tastea Admin Hub - Production Ready Master Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+      :root {
+        --bg-main: #060913;
+        --surface: #0f172a;
+        --surface-hover: #1e293b;
+        --accent: #f59e0b;
+        --accent-glow: rgba(245, 158, 11, 0.25);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --border: rgba(245, 158, 11, 0.3);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        font-size: 14px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 18px 16px 90px 16px;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+        animation: fadeIn 0.2s ease;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        overflow: hidden;
+      }
+      .card.alert-glow {
+        border-color: #ef4444;
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+      }
+
+      .metrics-grid-full {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+        width: 100%;
+      }
+      @media (min-width: 900px) {
+        .metrics-grid-full {
+          grid-template-columns: repeat(6, 1fr);
+        }
+      }
+
+      .metric-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        padding: 16px 12px;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          border-color 0.15s ease;
+        text-align: center;
+      }
+      .metric-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        background: var(--surface-hover);
+      }
+      .metric-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--accent);
+      }
+
+      .metric-title {
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 700;
+        display: block;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+      }
+      .metric-value {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0;
+        color: var(--accent);
+      }
+
+      .kitchen-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      @media (max-width: 768px) {
+        .kitchen-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .kitchen-col {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--surface-hover);
+        padding: 12px 14px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .item-row:hover {
+        border-color: var(--accent);
+        background: rgba(245, 158, 11, 0.08);
+      }
+      .item-row.completed {
+        opacity: 0.4;
+        text-decoration: line-through;
+        background: rgba(52, 211, 153, 0.05);
+        border-color: #34d399;
+        pointer-events: none;
+      }
+
+      .item-name {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+      .item-qty {
+        font-size: 15px;
+        font-weight: 800;
+        color: #34d399;
+        background: rgba(52, 211, 153, 0.12);
+        padding: 3px 10px;
+        border-radius: 8px;
+      }
+
+      .assign-filter-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      .assign-filter-select {
+        background: var(--surface-hover);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+        flex: 1;
+        min-width: 120px;
+      }
+      .assign-filter-select option {
+        background: var(--surface);
+        color: var(--text-main);
+      }
+
+      .assign-product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+        max-height: 65vh;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      .assign-product-card {
+        background: var(--surface-hover);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+        position: relative;
+      }
+      .assign-product-card.active {
+        border-color: #34d399;
+        background: rgba(52, 211, 153, 0.12);
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.25);
+      }
+      .assign-product-card img {
+        width: 55px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 6px;
+        border: 1.5px solid var(--border);
+      }
+      .assign-product-card .name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 3px;
+      }
+      .assign-product-card .tag {
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .filter-btn {
+        background: var(--surface-hover);
+        color: var(--text-muted);
+        border: 1.5px solid var(--border);
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .filter-btn.active {
+        background: var(--accent);
+        color: #060913;
+        border-color: var(--accent);
+      }
+
+      .dispatch-subpanel,
+      .master-subpanel {
+        display: none;
+      }
+      .dispatch-subpanel.active,
+      .master-subpanel.active {
+        display: block;
+        animation: fadeIn 0.15s ease;
+      }
+
+      .table-box {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        margin-bottom: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        text-align: left;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      th {
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--accent);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .badge-paid {
+        background: rgba(52, 211, 153, 0.15);
+        color: #34d399;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 11px;
+      }
+      .badge-risk {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 11px;
+      }
+
+      .btn {
+        background: var(--accent);
+        color: #060913;
+        border: none;
+        padding: 10px 16px;
+        font-weight: 700;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 12.5px;
+        transition: transform 0.1s;
+      }
+      .btn:active {
+        transform: scale(0.96);
+      }
+      .btn-wa {
+        background: #25d366;
+        color: #fff;
+      }
+      .btn-danger {
+        background: #f87171;
+        color: #fff;
+      }
+
+      .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+        width: 100%;
+      }
+      @media (min-width: 600px) {
+        .form-grid-2 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      input[type="text"],
+      input[type="number"],
+      select {
+        width: 100%;
+        max-width: 100%;
+        background: var(--bg-main);
+        color: var(--text-main);
+        border: 1.5px solid var(--border);
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+      }
+      input[type="checkbox"] {
+        transform: scale(1.3);
+        cursor: pointer;
+      }
+
+      /* --- Uniform Grid Layout for Catalog & Buildings (4 Columns on Desktop) --- */
+      .master-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 4px;
+      }
+      .master-grid-card {
+        background: var(--surface-hover);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .master-grid-card img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        border: 1.5px solid var(--border);
+      }
+      .master-grid-card .title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+      .master-grid-card .sub {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        line-height: 1.4;
+      }
+
+      /* Collapsible Form Container */
+      .collapsible-form {
+        display: none;
+        background: var(--surface-hover);
+        padding: 18px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+        border: 1.5px solid var(--border);
+        animation: fadeIn 0.15s ease;
+      }
+      .collapsible-form.open {
+        display: block;
+      }
+
+      /* --- Divine Draggable Floating Action Button (FAB) --- */
+      #divine-fab {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        width: 65px;
+        height: 65px;
+        background: var(--surface);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        cursor: grab;
+        z-index: 99999;
+        user-select: none;
+        touch-action: none;
+        border: 2.5px solid var(--accent);
+        overflow: hidden;
+      }
+      #divine-fab:active {
+        cursor: grabbing;
+      }
+      #divine-fab img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+
+      #fab-menu-popup {
+        position: fixed;
+        width: 250px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 8px;
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+        z-index: 99998;
+        backdrop-filter: blur(14px);
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+      #fab-menu-popup.open {
+        display: flex;
+        animation: fadeIn 0.15s ease;
+      }
+
+      .fab-menu-item {
+        background: transparent;
+        color: var(--text-muted);
+        border: none;
+        padding: 11px 12px;
+        text-align: left;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+      }
+      .fab-menu-item:hover,
+      .fab-menu-item.active {
+        background: var(--accent-glow);
+        color: var(--accent);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <!-- Top Running Header -->
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 18px;
+          padding: 0 4px;
+        "
+      >
+        <div>
+          <h1
+            style="
+              margin: 0;
+              font-size: 19px;
+              color: var(--accent);
+              letter-spacing: 0.5px;
+            "
+          >
+            TASTEA ADMIN HUB
+          </h1>
+          <p
+            id="running-date-clock"
+            style="margin: 3px 0 0; font-size: 11.5px; color: var(--text-muted)"
+          >
+            Loading date & time...
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button
+            class="btn"
+            onclick="testRailwayAlarm()"
+            style="padding: 8px 14px; font-size: 11.5px; background: #34d399"
+          >
+            🔔 Alarm
+          </button>
+          <button
+            class="btn"
+            onclick="syncData()"
+            style="padding: 8px 14px; font-size: 11.5px"
+          >
+            🔄 Sync
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. LIVE ORDERS TAB -->
+      <section id="panel-live" class="panel active">
+        <div class="metrics-grid-full">
+          <div class="metric-card" onclick="switchTab('finance')">
+            <span class="metric-title">⚡ INSTANT</span>
+            <h3 id="stat-instant-rev" class="metric-value">₹0</h3>
+          </div>
+          <div
+            class="metric-card"
+            style="--accent: #34d399"
+            onclick="switchTab('finance')"
+          >
+            <span class="metric-title">📦 SCHEDULED</span>
+            <h3 id="stat-sched-rev" class="metric-value" style="color: #34d399">
+              ₹0
+            </h3>
+          </div>
+          <div
+            class="metric-card"
+            style="--accent: #f472b6"
+            onclick="switchTab('finance')"
+          >
+            <span class="metric-title">🔄 SUBSCRIPTION</span>
+            <h3 id="stat-sub-rev" class="metric-value" style="color: #f472b6">
+              ₹7,200
+            </h3>
+          </div>
+          <div
+            class="metric-card"
+            style="--accent: #38bdf8"
+            onclick="switchTab('finance')"
+          >
+            <span class="metric-title">📊 TOTAL</span>
+            <h3 id="stat-total-rev" class="metric-value" style="color: #38bdf8">
+              ₹7,200
+            </h3>
+          </div>
+          <div
+            class="metric-card"
+            style="--accent: #34d399"
+            onclick="switchTab('finance')"
+          >
+            <span class="metric-title">💵 RECEIVED</span>
+            <h3 id="stat-received" class="metric-value" style="color: #34d399">
+              ₹0
+            </h3>
+          </div>
+          <div
+            class="metric-card"
+            style="--accent: #f87171"
+            onclick="switchTab('finance')"
+          >
+            <span class="metric-title">⏳ PENDING</span>
+            <h3
+              id="stat-receivables"
+              class="metric-value"
+              style="color: #f87171"
+            >
+              ₹7,200
+            </h3>
+          </div>
+        </div>
+
+        <div id="live-orders-card" class="card" style="padding: 16px">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent); font-size: 14px">
+            ⚡ Today's Live Orders Feed
+          </h3>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Building & Customer</th>
+                  <th>Items & Qty</th>
+                  <th>Amount</th>
+                  <th>Status / Pay</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                <tr>
+                  <td
+                    colspan="5"
+                    style="text-align: center; color: var(--text-muted)"
+                  >
+                    Loading today's live data...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. KITCHEN PRODUCTION TAB -->
+      <section id="panel-kitchen" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent); font-size: 14px">
+            🍳 Kitchen Production Command Center
+          </h3>
+          <p
+            style="
+              font-size: 12.5px;
+              color: var(--text-muted);
+              margin-bottom: 14px;
+            "
+          >
+            Total daily production combines Instant, Scheduled, and Corporate
+            Subscriptions.
+          </p>
+
+          <div class="kitchen-grid">
+            <div class="kitchen-col" style="border-color: #34d399">
+              <h4
+                style="
+                  margin: 0 0 10px 0;
+                  color: #34d399;
+                  font-size: 13px;
+                  border-bottom: 1px solid var(--border);
+                  padding-bottom: 8px;
+                "
+              >
+                ⚡ Instant Room QR
+              </h4>
+              <div id="kitchen-instant-items">
+                <div style="font-size: 12px; color: var(--text-muted)">
+                  Loading instant...
+                </div>
+              </div>
+            </div>
+            <div class="kitchen-col" style="border-color: #f59e0b">
+              <h4
+                style="
+                  margin: 0 0 10px 0;
+                  color: #f59e0b;
+                  font-size: 13px;
+                  border-bottom: 1px solid var(--border);
+                  padding-bottom: 8px;
+                "
+              >
+                📦 Scheduled Batch
+              </h4>
+              <div id="kitchen-scheduled-items">
+                <div
+                  id="sched-item-1"
+                  class="item-row"
+                  onclick="
+                    markReady(
+                      'Scheduled Samosa',
+                      45,
+                      'Batch 12PM',
+                      'sched-item-1',
+                      'scheduled',
+                    )
+                  "
+                >
+                  <span class="item-name">Samosa (12PM)</span>
+                  <span class="item-qty" style="color: #f59e0b">45</span>
+                </div>
+              </div>
+            </div>
+            <div class="kitchen-col" style="border-color: #f472b6">
+              <h4
+                style="
+                  margin: 0 0 10px 0;
+                  color: #f472b6;
+                  font-size: 13px;
+                  border-bottom: 1px solid var(--border);
+                  padding-bottom: 8px;
+                "
+              >
+                🔄 Subscription Batches
+              </h4>
+              <div id="kitchen-sub-items">
+                <div
+                  id="sub-item-1"
+                  class="item-row"
+                  onclick="
+                    markReady(
+                      'Morning Tea (50c) + Evening (50c)',
+                      100,
+                      'United Nero Solution',
+                      'sub-item-1',
+                      'subscription',
+                    )
+                  "
+                >
+                  <span class="item-name">Morning (50) & Evening (50)</span>
+                  <span class="item-qty" style="color: #f472b6">100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="batch-card"
+            style="
+              margin-top: 16px;
+              opacity: 0.9;
+              border-color: #94a3b8;
+              background: var(--surface-hover);
+              padding: 14px;
+              border-radius: 12px;
+            "
+          >
+            <div
+              class="batch-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 8px;
+                margin-bottom: 10px;
+              "
+            >
+              <span style="font-size: 13px; font-weight: 700; color: #94a3b8"
+                >✅ Ready / Completed (Sent to Dispatch)</span
+              >
+            </div>
+            <div id="kitchen-completed-items">
+              <div style="font-size: 12px; color: var(--text-muted)">
+                No completed items yet.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. DISPATCH & BILLING TAB -->
+      <section id="panel-dispatch" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent); font-size: 14px">
+            🚚 Dispatch & Billing Center
+          </h3>
+          <div class="filter-tabs" style="margin-bottom: 16px">
+            <button
+              class="filter-btn active"
+              onclick="switchDispatchTab('instant', this)"
+            >
+              ⚡ Instant Bills
+            </button>
+            <button
+              class="filter-btn"
+              onclick="switchDispatchTab('scheduled', this)"
+            >
+              📦 Batch Challan
+            </button>
+            <button class="filter-btn" onclick="switchDispatchTab('sub', this)">
+              🔄 Weekly Bill (Daily Breakdown)
+            </button>
+          </div>
+          <div id="dispatch-sub-instant" class="dispatch-subpanel active">
+            <div class="table-box">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Customer / Room</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Send / Print</th>
+                  </tr>
+                </thead>
+                <tbody id="dispatch-instant-tbody">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="text-align: center; color: var(--text-muted)"
+                    >
+                      No instant dispatch items.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="dispatch-sub-scheduled" class="dispatch-subpanel">
+            <div class="table-box">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Batch Time</th>
+                    <th>Building / Block</th>
+                    <th>Consolidated Items</th>
+                    <th>Send / Print</th>
+                  </tr>
+                </thead>
+                <tbody id="dispatch-sched-tbody">
+                  <tr>
+                    <td
+                      colspan="4"
+                      style="text-align: center; color: var(--text-muted)"
+                    >
+                      No scheduled batches ready.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div id="dispatch-sub-sub" class="dispatch-subpanel">
+            <div class="table-box">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Company Name</th>
+                    <th>Billing Cycle</th>
+                    <th>Daily Breakdown (Mon - Sat)</th>
+                    <th>Total Amount</th>
+                    <th>Bill Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dispatch-sub-tbody">
+                  <tr>
+                    <td><strong>United Nero Solution</strong></td>
+                    <td>Mon - Sat (6 Days)</td>
+                    <td style="color: #38bdf8; font-size: 12px">
+                      Mon: 100c | Tue: 100c | Wed: 100c | Thu: 100c | Fri: 100c
+                      | Sat: 100c
+                    </td>
+                    <td style="color: var(--accent); font-weight: bold">
+                      ₹7,200
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-wa"
+                        style="padding: 4px 8px; font-size: 10px"
+                        onclick="
+                          sendDetailedWeeklyBillWhatsApp(
+                            'United Nero Solution',
+                            '7200',
+                          )
+                        "
+                      >
+                        💬 WhatsApp Breakdown
+                      </button>
+                      <button
+                        class="btn"
+                        style="padding: 4px 8px; font-size: 10px"
+                        onclick="showDetailedBillModal('United Nero Solution')"
+                      >
+                        📄 View Bill
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ASSIGN HUB TAB -->
+      <section id="panel-assign" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent); font-size: 14px">
+            📌 Daily Menu Assignment Hub
+          </h3>
+          <p
+            style="
+              font-size: 12.5px;
+              color: var(--text-muted);
+              margin-bottom: 12px;
+            "
+          >
+            Select filters and tap products to toggle assignment for
+            Today/Tomorrow.
+          </p>
+          <div class="assign-filter-row">
+            <select
+              id="filter-timeline"
+              class="assign-filter-select"
+              onchange="renderAssignGrid()"
+            >
+              <option value="today">📅 Today</option>
+              <option value="tomorrow">📅 Tomorrow</option>
+            </select>
+            <select
+              id="filter-service"
+              class="assign-filter-select"
+              onchange="renderAssignGrid()"
+            >
+              <option value="instant">⚡ Instant</option>
+              <option value="scheduled">📦 Scheduled</option>
+              <option value="subscription">🔄 Subscription</option>
+            </select>
+            <select
+              id="filter-itemtype"
+              class="assign-filter-select"
+              onchange="renderAssignGrid()"
+            >
+              <option value="snacks">🍿 Snacks</option>
+              <option value="food">🍲 Food</option>
+              <option value="beverages">☕ Beverages</option>
+            </select>
+          </div>
+          <div id="assign-product-grid" class="assign-product-grid"></div>
+          <div
+            style="
+              margin-top: 16px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span
+              id="assign-status-text"
+              style="font-size: 12px; color: var(--text-muted)"
+              >Tap any item to instantly activate/deactivate.</span
+            >
+            <button
+              class="btn"
+              style="padding: 8px 14px"
+              onclick="alert('Assignments saved successfully!')"
+            >
+              💾 Save
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. FINANCE & REPORTS HUB -->
+      <section id="panel-finance" class="panel">
+        <div class="card">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            "
+          >
+            <div>
+              <h3
+                style="margin: 0 0 4px 0; color: var(--accent); font-size: 14px"
+              >
+                📊 Enterprise Balance Sheet & Ledger
+              </h3>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 0">
+                Auditor-grade cash flow and account statements.
+              </p>
+            </div>
+            <button
+              class="btn"
+              style="padding: 8px 14px; background: #34d399; color: #060913"
+              onclick="alert('Downloading Ledger...')"
+            >
+              📥 Download
+            </button>
+          </div>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Instant</th>
+                  <th>Scheduled</th>
+                  <th>Sub.</th>
+                  <th>Turnover</th>
+                  <th>Received</th>
+                  <th>Credit</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="finance-tbody">
+                <tr>
+                  <td><strong>21/09/26</strong></td>
+                  <td id="fin-instant" style="color: var(--accent)">₹0</td>
+                  <td id="fin-sched" style="color: #34d399">₹0</td>
+                  <td id="fin-sub" style="color: #f472b6">₹7,200</td>
+                  <td id="fin-total" style="font-weight: bold; color: #38bdf8">
+                    ₹7,200
+                  </td>
+                  <td id="fin-received" style="color: #34d399">₹0</td>
+                  <td id="fin-receivables" style="color: #f87171">₹7,200</td>
+                  <td>
+                    <button
+                      class="btn"
+                      style="padding: 4px 8px; font-size: 10px"
+                      onclick="showBalanceSheetDetails('21/09/2026')"
+                    >
+                      📋 P&L
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. CUSTOMERS CRM TAB -->
+      <section id="panel-customers" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 8px 0; color: var(--accent); font-size: 14px">
+            👥 Customer CRM & Credit Aging Risk
+          </h3>
+          <p
+            style="
+              font-size: 12.5px;
+              color: var(--text-muted);
+              margin-bottom: 14px;
+            "
+          >
+            Track credit health: 🟢 0-7 Days, 🟡 7-15 Days, 🔴 15+ Days.
+          </p>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company Name</th>
+                  <th>Contact Person</th>
+                  <th>Credit Limit</th>
+                  <th>Outstanding</th>
+                  <th>Aging Health</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody">
+                <tr>
+                  <td><strong>United Nero Solution</strong></td>
+                  <td>Mr. Ramesh (HR)</td>
+                  <td>₹15,000</td>
+                  <td style="color: #f87171; font-weight: bold">₹4,200</td>
+                  <td>🟢 0-7 Days</td>
+                  <td>
+                    <button
+                      class="btn"
+                      style="padding: 4px 8px; font-size: 10px"
+                      onclick="showCustomerLedgerView('United Nero Solution')"
+                    >
+                      📋 View
+                    </button>
+                    <button
+                      class="btn"
+                      style="
+                        padding: 4px 8px;
+                        font-size: 10px;
+                        background: #f59e0b;
+                        color: #060913;
+                      "
+                      onclick="
+                        openEditCreditModal('United Nero Solution', 15000)
+                      "
+                    >
+                      ⚙️ Edit
+                    </button>
+                    <button
+                      class="btn btn-danger"
+                      style="padding: 4px 8px; font-size: 10px"
+                      onclick="confirmBlockCustomer('United Nero Solution')"
+                    >
+                      🚫 Block
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. CORPORATE SUBSCRIPTIONS HUB -->
+      <section id="panel-subscriptions" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 12px 0; color: #f472b6; font-size: 14px">
+            🔄 Corporate Subscriptions Hub (Custom Pricing & Breakdown)
+          </h3>
+          <p
+            style="
+              font-size: 12.5px;
+              color: var(--text-muted);
+              margin-bottom: 14px;
+            "
+          >
+            Manage corporate contracts with per-building tea price and
+            complimentary snack toggle.
+          </p>
+
+          <div
+            style="
+              background: var(--surface-hover);
+              padding: 16px;
+              border-radius: 12px;
+              margin-bottom: 16px;
+              border: 1.5px solid var(--border);
+            "
+          >
+            <h4
+              style="margin: 0 0 10px 0; color: var(--accent); font-size: 13px"
+            >
+              ➕ Register Corporate Subscription
+            </h4>
+            <div class="form-grid-2" style="margin-bottom: 10px">
+              <input
+                type="text"
+                id="sub-comp-name"
+                placeholder="Company Name (e.g. Apex Corp)"
+              />
+              <input
+                type="text"
+                id="sub-hr-contact"
+                placeholder="HR Contact / Phone"
+              />
+            </div>
+            <div class="form-grid-2" style="margin-bottom: 10px">
+              <input
+                type="number"
+                id="sub-morning-qty"
+                placeholder="Morning Tea Count"
+              />
+              <input
+                type="number"
+                id="sub-evening-qty"
+                placeholder="Evening Tea Count"
+              />
+            </div>
+            <div class="form-grid-2" style="margin-bottom: 10px">
+              <input
+                type="number"
+                id="sub-price-cup"
+                placeholder="Price per Cup (₹ e.g. 12)"
+                value="12"
+              />
+              <select id="sub-billing-cycle">
+                <option value="Mon-Sat (6 Days)">
+                  📅 Mon - Sat (6 Days Cycle)
+                </option>
+                <option value="Mon-Fri (5 Days)">
+                  📅 Mon - Fri (5 Days Cycle)
+                </option>
+              </select>
+            </div>
+            <div
+              style="
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              "
+            >
+              <input type="checkbox" id="sub-comp-snacks" checked />
+              <label
+                for="sub-comp-snacks"
+                style="font-size: 12px; color: #34d399; font-weight: 600"
+                >🎁 Include Free Complimentary No-Oil Snacks
+                (Sundal/Kozhukattai)</label
+              >
+            </div>
+            <button
+              class="btn"
+              style="
+                background: #f472b6;
+                color: #060913;
+                width: 100%;
+                padding: 10px;
+              "
+              onclick="addCorporateSubscription()"
+            >
+              Register & Activate Subscription
+            </button>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin: 10px 0 8px 0;
+            "
+          >
+            <h5 style="margin: 0; color: var(--text-main); font-size: 12.5px">
+              📋 Active Corporate Subscriptions List:
+            </h5>
+            <span
+              id="total-subs-count"
+              style="font-size: 11.5px; color: #f472b6; font-weight: bold"
+              >Total: 1</span
+            >
+          </div>
+          <div class="table-box">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company Name</th>
+                  <th>Morning / Evening</th>
+                  <th>Rate/Cup & Snacks</th>
+                  <th>Weekly Bill (Daily Breakdown)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="subscriptions-tbody">
+                <tr>
+                  <td><strong>United Nero Solution</strong></td>
+                  <td style="color: #f472b6">M: 50 | E: 50</td>
+                  <td>
+                    ₹12/c <span style="color: #34d399">(🎁 Free Snacks)</span>
+                  </td>
+                  <td style="color: var(--accent); font-weight: bold">
+                    ₹7,200
+                    <span style="font-size: 10.5px; color: #38bdf8"
+                      >(Mon-Sat Breakdown)</span
+                    >
+                  </td>
+                  <td>
+                    <button
+                      class="btn btn-wa"
+                      style="padding: 4px 8px; font-size: 10px"
+                      onclick="
+                        sendDetailedWeeklyBillWhatsApp(
+                          'United Nero Solution',
+                          '7200',
+                        )
+                      "
+                    >
+                      💬 WhatsApp
+                    </button>
+                    <button
+                      class="btn btn-danger"
+                      style="padding: 4px 8px; font-size: 10px"
+                      onclick="deleteSubItem(0)"
+                    >
+                      🗑️ Remove
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. MASTER CATALOG & LOCATION QR HUB (Uniform Grid UI, Collapsible Forms & Full Edit Modal) -->
+      <section id="panel-settings" class="panel">
+        <div class="card">
+          <h3 style="margin: 0 0 10px 0; color: var(--accent); font-size: 14px">
+            🛠️ Master Catalog & Location QR Hub
+          </h3>
+          <p
+            style="
+              font-size: 12.5px;
+              color: var(--text-muted);
+              margin-bottom: 14px;
+            "
+          >
+            Manage catalog items with service mapping and generate location QR
+            standees.
+          </p>
+
+          <div class="filter-tabs" style="margin-bottom: 16px">
+            <button
+              class="filter-btn active"
+              onclick="switchMasterSub('catalog', this)"
+            >
+              🍿 Catalog Products
+            </button>
+            <button
+              class="filter-btn"
+              onclick="switchMasterSub('buildings', this)"
+            >
+              🏢 Buildings & Standees
+            </button>
+          </div>
+
+          <!-- Sub-panel 1: Catalog Products -->
+          <div id="master-sub-catalog" class="master-subpanel active">
+            <!-- Collapsible Add Product Form Header -->
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 14px;
+              "
+            >
+              <h4 style="margin: 0; color: var(--text-main); font-size: 13px">
+                📋 Active Catalog Items
+              </h4>
+              <button
+                class="btn"
+                style="background: #34d399; color: #060913; padding: 7px 14px"
+                onclick="toggleCollapsibleForm('catalog-form')"
+              >
+                ➕ Add New Product
+              </button>
+            </div>
+
+            <!-- Collapsible Add Product Form Body -->
+            <div id="catalog-form" class="collapsible-form">
+              <h4
+                style="
+                  margin: 0 0 12px 0;
+                  color: var(--accent);
+                  font-size: 13px;
+                "
+              >
+                ➕ Add Product (Full Schema)
+              </h4>
+              <div class="form-grid-2" style="margin-bottom: 10px">
+                <input
+                  type="text"
+                  id="new-prod-name"
+                  placeholder="Product Name (e.g. Sundal)"
+                />
+                <input
+                  type="number"
+                  id="new-prod-price"
+                  placeholder="Base Price (₹)"
+                />
+              </div>
+              <div class="form-grid-2" style="margin-bottom: 10px">
+                <select id="new-prod-category">
+                  <option value="snacks">🍿 Category: Snacks</option>
+                  <option value="beverages">☕ Category: Beverages</option>
+                  <option value="food">🍲 Category: Food</option>
+                </select>
+                <select id="new-prod-dietary">
+                  <option value="veg">🌱 Dietary: Veg (No Oil / Boil)</option>
+                  <option value="nonveg">🍗 Dietary: Non-Veg</option>
+                </select>
+              </div>
+              <div class="form-grid-2" style="margin-bottom: 10px">
+                <select id="new-prod-scope">
+                  <option value="all">
+                    ⚡ Service Scope: All of the Above
+                  </option>
+                  <option value="instant">⚡ Instant Only</option>
+                  <option value="scheduled">📦 Scheduled Only</option>
+                  <option value="subscription">🔄 Subscription Only</option>
+                </select>
+                <input
+                  type="text"
+                  id="new-prod-img"
+                  placeholder="Image URL (optional)"
+                />
+              </div>
+              <div style="display: flex; gap: 10px">
+                <button
+                  class="btn"
+                  onclick="addNewProduct()"
+                  style="flex: 1; padding: 9px"
+                >
+                  Save Product
+                </button>
+                <button
+                  class="btn btn-danger"
+                  onclick="toggleCollapsibleForm('catalog-form')"
+                  style="padding: 9px 14px"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Category Filter Bar -->
+            <div class="filter-tabs" style="margin-bottom: 14px">
+              <button
+                class="filter-btn active"
+                onclick="filterAdminCatalog('all', this)"
+              >
+                ⚡ All
+              </button>
+              <button
+                class="filter-btn"
+                onclick="filterAdminCatalog('snacks', this)"
+              >
+                🍿 Snacks
+              </button>
+              <button
+                class="filter-btn"
+                onclick="filterAdminCatalog('beverages', this)"
+              >
+                ☕ Beverages
+              </button>
+              <button
+                class="filter-btn"
+                onclick="filterAdminCatalog('food', this)"
+              >
+                🍲 Food
+              </button>
+            </div>
+
+            <!-- Uniform Grid Layout (4 Columns) -->
+            <div id="catalog-grid-container" class="master-grid-4"></div>
+          </div>
+
+          <!-- Sub-panel 2: Buildings & Standees (Uniform Grid & Collapsible Form) -->
+          <div id="master-sub-buildings" class="master-subpanel">
+            <!-- Collapsible Add Building Form Header -->
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 14px;
+              "
+            >
+              <h5
+                style="margin: 0; color: var(--text-main); font-size: 13px"
+                id="total-buildings-count"
+              >
+                Total: 0
+              </h5>
+              <button
+                class="btn"
+                style="background: #34d399; color: #060913; padding: 7px 14px"
+                onclick="toggleCollapsibleForm('building-form')"
+              >
+                ➕ Add Building & QR
+              </button>
+            </div>
+
+            <!-- Collapsible Add Building Form Body -->
+            <div id="building-form" class="collapsible-form">
+              <h4 style="margin: 0 0 12px 0; color: #34d399; font-size: 13px">
+                🏢 Add Building & Generate QR Standee
+              </h4>
+              <div class="form-grid-2" style="margin-bottom: 10px">
+                <input
+                  type="text"
+                  id="qr-bldg-name"
+                  placeholder="Building / Company Name"
+                />
+                <input
+                  type="text"
+                  id="qr-area"
+                  placeholder="Area / Street (e.g. Palayamkottai)"
+                />
+              </div>
+              <div class="form-grid-2" style="margin-bottom: 10px">
+                <input
+                  type="text"
+                  id="qr-district"
+                  placeholder="District"
+                  value="Tirunelveli"
+                />
+                <input type="text" id="qr-pincode" placeholder="Pincode" />
+              </div>
+              <div style="display: flex; gap: 10px">
+                <button
+                  class="btn"
+                  style="
+                    background: #34d399;
+                    color: #060913;
+                    flex: 1;
+                    padding: 9px;
+                  "
+                  onclick="generateBuildingQR()"
+                >
+                  🖨️ Generate & Download QR
+                </button>
+                <button
+                  class="btn btn-danger"
+                  onclick="toggleCollapsibleForm('building-form')"
+                  style="padding: 9px 14px"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Uniform Grid Layout for Buildings -->
+            <div id="buildings-grid-container" class="master-grid-4"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Professional Modal Overlay -->
+    <div
+      id="detail-modal"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(6, 9, 19, 0.9);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      "
+    >
+      <div
+        style="
+          background: var(--surface);
+          border: 1.5px solid var(--border);
+          border-radius: 16px;
+          width: 100%;
+          max-width: 650px;
+          max-height: 85vh;
+          overflow-y: auto;
+          padding: 20px;
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3
+            id="modal-title"
+            style="margin: 0; font-size: 15px; color: var(--accent)"
+          >
+            Auditor Statement
+          </h3>
+          <button
+            class="btn"
+            style="
+              padding: 4px 10px;
+              font-size: 11px;
+              background: #f87171;
+              color: #fff;
+            "
+            onclick="closeDetailModal()"
+          >
+            ✕ Close
+          </button>
+        </div>
+        <div
+          id="modal-body"
+          style="font-size: 12.5px; color: var(--text-main); line-height: 1.6"
+        >
+          Loading statement...
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Navigation Menu Popup (8 Tabs) -->
+    <div id="fab-menu-popup">
+      <button
+        onclick="switchTab('live')"
+        id="menu-live"
+        class="fab-menu-item active"
+      >
+        ⚡ Live Orders
+      </button>
+      <button
+        onclick="switchTab('kitchen')"
+        id="menu-kitchen"
+        class="fab-menu-item"
+      >
+        🍳 Kitchen Production
+      </button>
+      <button
+        onclick="switchTab('dispatch')"
+        id="menu-dispatch"
+        class="fab-menu-item"
+      >
+        🚚 Dispatch & Billing
+      </button>
+      <button
+        onclick="switchTab('assign')"
+        id="menu-assign"
+        class="fab-menu-item"
+      >
+        📌 Assign Hub
+      </button>
+      <button
+        onclick="switchTab('finance')"
+        id="menu-finance"
+        class="fab-menu-item"
+      >
+        📊 Balance Sheet & Finance
+      </button>
+      <button
+        onclick="switchTab('customers')"
+        id="menu-customers"
+        class="fab-menu-item"
+      >
+        👥 Customers CRM & Aging
+      </button>
+      <button
+        onclick="switchTab('subscriptions')"
+        id="menu-subscriptions"
+        class="fab-menu-item"
+      >
+        🔄 Corporate Subscriptions
+      </button>
+      <button
+        onclick="switchTab('settings')"
+        id="menu-settings"
+        class="fab-menu-item"
+      >
+        🛠️ Master Catalog & QR Hub
+      </button>
+    </div>
+
+    <!-- Divine Draggable Floating Action Button -->
+    <div id="divine-fab" title="Tastea Quick Hub">
+      <img src="floting_icon.png" alt="Divine Vel Icon" />
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCggBRdVQqEsVX6pOnackOcCLr5RMXmebc",
+        authDomain: "tastea-food-and-beverage.firebaseapp.com",
+        projectId: "tastea-food-and-beverage",
+        storageBucket: "tastea-food-and-beverage.firebasestorage.app",
+        messagingSenderId: "669318528715",
+        appId: "1:669318528715:web:421955e4a2cdff00de654e",
+        measurementId: "G-ZZ38SHY5X1",
+      };
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      let completedItemsTracker = {};
+      let dispatchedInstant = [];
+      let dispatchedSched = [];
+      let dispatchedSub = [];
+      const subRevDefault = 7200;
+
+      const masterCatalog = [
+        {
+          id: "p1",
+          name: "Masala Tea",
+          price: 12,
+          type: "beverages",
+          dietary: "veg",
+          scope: "all",
+          activeToday: true,
+          activeTomorrow: false,
+        },
+        {
+          id: "p2",
+          name: "Filter Coffee",
+          price: 15,
+          type: "beverages",
+          dietary: "veg",
+          scope: "instant",
+          activeToday: false,
+          activeTomorrow: false,
+        },
+        {
+          id: "p3",
+          name: "Veg Samosa",
+          price: 15,
+          type: "snacks",
+          dietary: "veg",
+          scope: "all",
+          activeToday: true,
+          activeTomorrow: true,
+        },
+        {
+          id: "p4",
+          name: "Paniyaram",
+          price: 20,
+          type: "snacks",
+          dietary: "veg",
+          scope: "instant",
+          activeToday: false,
+          activeTomorrow: false,
+        },
+        {
+          id: "p5",
+          name: "Sundal (Boil)",
+          price: 15,
+          type: "snacks",
+          dietary: "veg",
+          scope: "subscription",
+          activeToday: true,
+          activeTomorrow: true,
+        },
+        {
+          id: "p6",
+          name: "Kozhukattai",
+          price: 15,
+          type: "snacks",
+          dietary: "veg",
+          scope: "subscription",
+          activeToday: true,
+          activeTomorrow: false,
+        },
+        {
+          id: "p7",
+          name: "Batch Tea (50L)",
+          price: 500,
+          type: "beverages",
+          dietary: "veg",
+          scope: "scheduled",
+          activeToday: true,
+          activeTomorrow: true,
+        },
+        {
+          id: "p8",
+          name: "Sandwich Meal",
+          price: 40,
+          type: "food",
+          dietary: "veg",
+          scope: "scheduled",
+          activeToday: false,
+          activeTomorrow: true,
+        },
+      ];
+
+      let registeredBuildings = [
+        {
+          id: "b1",
+          name: "United Nero Solution",
+          area: "Palayamkottai",
+          district: "Tirunelveli",
+          pincode: "627002",
+        },
+        {
+          id: "b2",
+          name: "Reliance Industries",
+          area: "SIPCOT",
+          district: "Tirunelveli",
+          pincode: "627011",
+        },
+      ];
+
+      let corporateSubscriptions = [
+        {
+          id: "s1",
+          name: "United Nero Solution",
+          morningQty: 50,
+          eveningQty: 50,
+          price: 12,
+          snacks: true,
+          cycle: "Mon - Sat (6 Days)",
+          contact: "Mr. Ramesh (HR)",
+        },
+      ];
+
+      let currentAdminCatalogFilter = "all";
+
+      setInterval(() => {
+        const now = new Date();
+        const options = {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        };
+        document.getElementById("running-date-clock").innerText =
+          `📅 ${now.toLocaleDateString("en-IN", options)} | 🕒 ${now.toLocaleTimeString()}`;
+      }, 1000);
+
+      function switchMasterSub(subType, btn) {
+        document
+          .querySelectorAll("#panel-settings .filter-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document
+          .querySelectorAll(".master-subpanel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .getElementById(`master-sub-${subType}`)
+          .classList.add("active");
+      }
+
+      function toggleCollapsibleForm(formId) {
+        const form = document.getElementById(formId);
+        form.classList.toggle("open");
+      }
+
+      function filterAdminCatalog(category, btn) {
+        currentAdminCatalogFilter = category;
+        const parent = btn.parentElement;
+        parent
+          .querySelectorAll(".filter-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderCatalogGridContainer();
+      }
+
+      function renderCatalogGridContainer() {
+        const container = document.getElementById("catalog-grid-container");
+        let html = "";
+        const filtered =
+          currentAdminCatalogFilter === "all"
+            ? masterCatalog
+            : masterCatalog.filter((p) => p.type === currentAdminCatalogFilter);
+
+        filtered.forEach((p) => {
+          const realIdx = masterCatalog.indexOf(p);
+          html += `
+            <div class="master-grid-card">
+              <img src="floting_icon.png" alt="${p.name}">
+              <div class="title">${p.name}</div>
+              <div class="sub">₹${p.price} | ${p.type.toUpperCase()}<br>Scope: ${p.scope.toUpperCase()}</div>
+              <div style="display:flex; gap:6px; width:100%;">
+                <button class="btn" style="flex:1; padding:6px; font-size:11px; background:#f59e0b; color:#060913;" onclick="openEditProductModal(${realIdx})">⚙️ Edit</button>
+                <button class="btn btn-danger" style="flex:1; padding:6px; font-size:11px;" onclick="deleteCatalogItem(${realIdx})">🗑️ Delete</button>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML =
+          html ||
+          `<div style="grid-column: span 4; text-align:center; color:var(--text-muted); padding:30px;">No products found in this category.</div>`;
+      }
+
+      function addNewProduct() {
+        const name = document.getElementById("new-prod-name").value;
+        const price = document.getElementById("new-prod-price").value;
+        const type = document.getElementById("new-prod-category").value;
+        const dietary = document.getElementById("new-prod-dietary").value;
+        const scope = document.getElementById("new-prod-scope").value;
+        if (!name || !price) {
+          alert("Please enter product name and base price!");
+          return;
+        }
+
+        masterCatalog.push({
+          id: "p_" + Date.now(),
+          name: name,
+          price: Number(price),
+          type: type,
+          dietary: dietary,
+          scope: scope,
+          activeToday: true,
+          activeTomorrow: true,
+        });
+        alert(`Product "${name}" (₹${price}) added successfully!`);
+
+        document.getElementById("new-prod-name").value = "";
+        document.getElementById("new-prod-price").value = "";
+        toggleCollapsibleForm("catalog-form");
+        renderCatalogGridContainer();
+        renderAssignGrid();
+      }
+
+      function openEditProductModal(index) {
+        const p = masterCatalog[index];
+        document.getElementById("modal-title").innerText =
+          `⚙️ Edit Product: ${p.name}`;
+        document.getElementById("modal-body").innerHTML = `
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:var(--text-muted);">Product Name:</label>
+            <input type="text" id="edit-prod-name" value="${p.name}" />
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:var(--text-muted);">Base Price (₹):</label>
+            <input type="number" id="edit-prod-price" value="${p.price}" />
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:var(--text-muted);">Service Scope:</label>
+            <select id="edit-prod-scope">
+              <option value="all" ${p.scope === "all" ? "selected" : ""}>⚡ All of the Above</option>
+              <option value="instant" ${p.scope === "instant" ? "selected" : ""}>⚡ Instant Only</option>
+              <option value="scheduled" ${p.scope === "scheduled" ? "selected" : ""}>📦 Scheduled Only</option>
+              <option value="subscription" ${p.scope === "subscription" ? "selected" : ""}>🔄 Subscription Only</option>
+            </select>
+          </div>
+          <button class="btn" style="width:100%; padding:10px;" onclick="saveEditedProduct(${index})">Save Product Changes</button>
+        `;
+        document.getElementById("detail-modal").style.display = "flex";
+      }
+
+      function saveEditedProduct(index) {
+        const p = masterCatalog[index];
+        const name = document.getElementById("edit-prod-name").value;
+        const price = document.getElementById("edit-prod-price").value;
+        const scope = document.getElementById("edit-prod-scope").value;
+        if (!name || !price) {
+          alert("Please fill name and price!");
+          return;
+        }
+
+        p.name = name;
+        p.price = Number(price);
+        p.scope = scope;
+        alert("Product updated successfully!");
+        closeDetailModal();
+        renderCatalogGridContainer();
+        renderAssignGrid();
+      }
+
+      function deleteCatalogItem(index) {
+        if (
+          confirm("Are you sure you want to delete this product from catalog?")
+        ) {
+          masterCatalog.splice(index, 1);
+          renderCatalogGridContainer();
+          renderAssignGrid();
+        }
+      }
+
+      function renderBuildingsSimpleGrid() {
+        const grid = document.getElementById("buildings-grid-container");
+        document.getElementById("total-buildings-count").innerText =
+          `Total: ${registeredBuildings.length}`;
+        let html = "";
+        registeredBuildings.forEach((b, idx) => {
+          html += `
+            <div class="master-grid-card">
+              <img src="floting_icon.png" alt="${b.name}">
+              <div class="title">${b.name}</div>
+              <div class="sub">${b.area}, ${b.district}<br>Pin: ${b.pincode}</div>
+              <button class="btn btn-danger" style="padding:6px; font-size:11px; width:100%;" onclick="deleteBuildingItem(${idx})">🗑️ Delete</button>
+            </div>
+          `;
+        });
+        grid.innerHTML =
+          html ||
+          `<div style="grid-column: span 4; text-align:center; color:var(--text-muted); padding:30px;">No buildings registered.</div>`;
+      }
+
+      function deleteBuildingItem(index) {
+        if (confirm("Are you sure you want to remove this building standee?")) {
+          registeredBuildings.splice(index, 1);
+          renderBuildingsSimpleGrid();
+        }
+      }
+
+      function generateBuildingQR() {
+        const bldg = document.getElementById("qr-bldg-name").value;
+        const area = document.getElementById("qr-area").value;
+        const district = document.getElementById("qr-district").value;
+        const pincode = document.getElementById("qr-pincode").value;
+        if (!bldg || !pincode) {
+          alert("Please enter Building Name and Pincode!");
+          return;
+        }
+
+        registeredBuildings.push({
+          id: "b_" + Date.now(),
+          name: bldg,
+          area: area || "Area",
+          district: district || "Tirunelveli",
+          pincode: pincode,
+        });
+        alert(
+          `--- TASTEA QR STANDEE GENERATED ---\nBuilding: ${bldg}\nLocation: ${area}, ${district} - ${pincode}\n\nQR Code Standee successfully generated and added!`,
+        );
+
+        document.getElementById("qr-bldg-name").value = "";
+        document.getElementById("qr-area").value = "";
+        document.getElementById("qr-pincode").value = "";
+        toggleCollapsibleForm("building-form");
+        renderBuildingsSimpleGrid();
+      }
+
+      function renderCorporateSubsTable() {
+        const tbody = document.getElementById("subscriptions-tbody");
+        document.getElementById("total-subs-count").innerText =
+          `Total: ${corporateSubscriptions.length}`;
+        let html = "";
+        corporateSubscriptions.forEach((s, idx) => {
+          let totalDaily = (s.morningQty || 0) + (s.eveningQty || 0);
+          let daysCount = s.cycle.includes("5 Days") ? 5 : 6;
+          let weeklyVol = totalDaily * daysCount;
+          let weeklyAmt = weeklyVol * (s.price || 12);
+          html += `
+            <tr>
+              <td><strong>${s.name}</strong></td>
+              <td style="color:#f472b6;">M: ${s.morningQty || 0} | E: ${s.eveningQty || 0}</td>
+              <td>₹${s.price || 12}/c ${s.snacks ? '<span style="color:#34d399;">(🎁 Snacks)</span>' : ""}</td>
+              <td style="color:var(--accent); font-weight:bold;">₹${weeklyAmt} <span style="font-size:10.5px; color:#38bdf8;">(${daysCount}d Breakdown)</span></td>
+              <td>
+                <button class="btn btn-wa" style="padding:4px 8px; font-size:10px;" onclick="sendDetailedWeeklyBillWhatsApp('${s.name}', '${weeklyAmt}')">💬 WhatsApp</button>
+                <button class="btn btn-danger" style="padding:4px 8px; font-size:10px;" onclick="deleteSubItem(${idx})">🗑️ Remove</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML =
+          html ||
+          `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No corporate subscriptions registered.</td></tr>`;
+      }
+
+      function addCorporateSubscription() {
+        const name = document.getElementById("sub-comp-name").value;
+        const morningQty = document.getElementById("sub-morning-qty").value;
+        const eveningQty = document.getElementById("sub-evening-qty").value;
+        const price = document.getElementById("sub-price-cup").value;
+        const cycle = document.getElementById("sub-billing-cycle").value;
+        const snacks = document.getElementById("sub-comp-snacks").checked;
+        const contact = document.getElementById("sub-hr-contact").value;
+        if (!name || (morningQty === "" && eveningQty === "")) {
+          alert("Please enter Company Name and at least one batch count!");
+          return;
+        }
+
+        corporateSubscriptions.push({
+          id: "s_" + Date.now(),
+          name: name,
+          morningQty: Number(morningQty || 0),
+          eveningQty: Number(eveningQty || 0),
+          price: Number(price || 12),
+          snacks: snacks,
+          cycle: cycle,
+          contact: contact || "HR",
+        });
+        alert(`Corporate Subscription for "${name}" successfully registered!`);
+
+        document.getElementById("sub-comp-name").value = "";
+        document.getElementById("sub-morning-qty").value = "";
+        document.getElementById("sub-evening-qty").value = "";
+        document.getElementById("sub-hr-contact").value = "";
+        renderCorporateSubsTable();
+      }
+
+      function deleteSubItem(index) {
+        if (
+          confirm(
+            "Are you sure you want to remove this corporate subscription?",
+          )
+        ) {
+          corporateSubscriptions.splice(index, 1);
+          renderCorporateSubsTable();
+        }
+      }
+
+      function showDetailedBillModal(companyName) {
+        document.getElementById("modal-title").innerText =
+          `📄 Detailed Weekly Bill Breakdown (${companyName})`;
+        document.getElementById("modal-body").innerHTML = `
+          <div style="background:var(--surface-hover); padding:12px; border-radius:8px; margin-bottom:12px;">
+            <strong>Company:</strong> ${companyName}<br>
+            <strong>Billing Cycle:</strong> Monday to Saturday (6 Days)<br>
+            <strong>Complimentary Snacks:</strong> Included (No-Oil Boil)
+          </div>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
+            <tr><th style="padding:8px;">Day</th><th style="padding:8px;">Morning Tea</th><th style="padding:8px;">Evening Tea</th><th style="padding:8px; text-align:right;">Daily Total</th></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Monday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Tuesday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Wednesday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Thursday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Friday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid var(--border);">Saturday</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="padding:8px; border-bottom:1px solid var(--border);">50 cups</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹1,200</td></tr>
+            <tr><td colspan="3" style="padding:10px; font-weight:bold;">Grand Total (600 Cups)</td><td style="text-align:right; padding:10px; font-weight:bold; color:var(--accent);">₹7,200</td></tr>
+          </table>
+        `;
+        document.getElementById("detail-modal").style.display = "flex";
+      }
+
+      function sendDetailedWeeklyBillWhatsApp(companyName, totalAmt) {
+        window.open(
+          `https://wa.me/?text=` +
+            encodeURIComponent(
+              `*TASTEA FOOD & BEVERAGES - WEEKLY BILL*\n\nCompany: ${companyName}\nPeriod: Mon to Sat (6 Days Breakdown)\nTotal Volume: 600 Cups\nTotal Amount: ₹${totalAmt}\n\n(Includes Free No-Oil Snacks)\nThank you! 🙏`,
+            ),
+          "_blank",
+        );
+      }
+
+      function openEditCreditModal(companyName, currentLimit) {
+        document.getElementById("modal-title").innerText =
+          `⚙️ Edit Credit Limit: ${companyName}`;
+        document.getElementById("modal-body").innerHTML = `
+          <div style="margin-bottom:12px;">
+            <label style="color:var(--text-muted); font-size:11.5px;">Current Credit Limit:</label>
+            <input type="text" value="₹${currentLimit}" readonly style="width:100%; background:var(--bg-main); color:var(--text-main); border:1px solid var(--border); padding:8px; border-radius:6px; margin-top:4px;" />
+          </div>
+          <div style="margin-bottom:14px;">
+            <label style="color:var(--accent); font-size:11.5px; font-weight:bold;">New Credit Limit (₹):</label>
+            <input type="number" id="new-credit-input" placeholder="Enter new limit" style="width:100%; background:var(--bg-main); color:var(--text-main); border:1px solid var(--border); padding:8px; border-radius:6px; margin-top:4px;" />
+          </div>
+          <button class="btn" style="width:100%; padding:10px;" onclick="saveNewCreditLimit('${companyName}')">Save New Credit Limit</button>
+        `;
+        document.getElementById("detail-modal").style.display = "flex";
+      }
+
+      function saveNewCreditLimit(companyName) {
+        const val = document.getElementById("new-credit-input").value;
+        if (!val) {
+          alert("Please enter a valid amount!");
+          return;
+        }
+        alert(
+          `Success! Credit limit for ${companyName} has been updated to ₹${val}.`,
+        );
+        closeDetailModal();
+      }
+
+      function confirmBlockCustomer(companyName) {
+        if (
+          confirm(
+            `⚠️ Are you sure you want to block credit transactions for "${companyName}"? Orders will be restricted to Cash/Online payment only.`,
+          )
+        ) {
+          alert(
+            `Company "${companyName}" has been successfully moved to Block/Pre-paid mode.`,
+          );
+        }
+      }
+
+      function testRailwayAlarm() {
+        try {
+          const audioCtx = new (
+            window.AudioContext || window.webkitAudioContext
+          )();
+          const now = audioCtx.currentTime;
+          const osc1 = audioCtx.createOscillator();
+          const osc2 = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(880, now);
+          osc2.type = "sine";
+          osc2.frequency.setValueAtTime(659.25, now);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 1.5);
+          osc2.stop(now + 1.5);
+          const liveCard = document.getElementById("live-orders-card");
+          liveCard.classList.add("alert-glow");
+          setTimeout(() => liveCard.classList.remove("alert-glow"), 3000);
+        } catch (e) {
+          console.log("Audio alert triggered");
+        }
+      }
+
+      function renderAssignGrid() {
+        const timeline = document.getElementById("filter-timeline").value;
+        const service = document.getElementById("filter-service").value;
+        const itemtype = document.getElementById("filter-itemtype").value;
+        const gridContainer = document.getElementById("assign-product-grid");
+        let html = "";
+        const filtered = masterCatalog.filter(
+          (p) =>
+            p.type === itemtype && (p.scope === service || p.scope === "all"),
+        );
+        if (filtered.length === 0) {
+          gridContainer.innerHTML = `<div style="grid-column: span 3; text-align:center; color:var(--text-muted); padding:20px; font-size:12px;">No products found.</div>`;
+          return;
+        }
+        filtered.forEach((p) => {
+          const isActive =
+            timeline === "today" ? p.activeToday : p.activeTomorrow;
+          html += `<div class="assign-product-card ${isActive ? "active" : ""}" onclick="toggleProductAssignment('${p.id}', '${timeline}')"><img src="floting_icon.png" alt="${p.name}"><div class="name">${p.name}</div><div class="tag">${isActive ? "✅ Assigned" : "Tap to Assign"}</div></div>`;
+        });
+        gridContainer.innerHTML = html;
+      }
+
+      function toggleProductAssignment(id, timeline) {
+        const prod = masterCatalog.find((p) => p.id === id);
+        if (prod) {
+          if (timeline === "today") prod.activeToday = !prod.activeToday;
+          else prod.activeTomorrow = !prod.activeTomorrow;
+          renderAssignGrid();
+        }
+      }
+
+      function showBalanceSheetDetails(dateStr) {
+        document.getElementById("modal-title").innerText =
+          `📈 Balance Sheet & P&L Statement (${dateStr})`;
+        document.getElementById("modal-body").innerHTML =
+          `<div style="background:var(--surface-hover); padding:12px; border-radius:8px; margin-bottom:12px;"><strong>Statement Date:</strong> ${dateStr}<br><strong>Standard:</strong> Non-Taxable Local Bill</div><table style="width:100%; border-collapse:collapse; margin-bottom:10px;"><tr><th style="text-align:left; padding:8px;">Revenue Head</th><th style="text-align:right; padding:8px;">Amount (₹)</th></tr><tr><td style="padding:8px; border-bottom:1px solid var(--border);">⚡ Instant Cash Sales</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹0</td></tr><tr><td style="padding:8px; border-bottom:1px solid var(--border);">📦 Scheduled Pantry Batches</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border);">₹0</td></tr><tr><td style="padding:8px; border-bottom:1px solid var(--border);">🔄 Corporate Subscriptions</td><td style="text-align:right; padding:8px; border-bottom:1px solid var(--border); color:#f472b6;">₹7,200</td></tr><tr><td style="padding:8px; font-weight:bold;">Gross Turnover</td><td style="text-align:right; padding:8px; font-weight:bold; color:var(--accent);">₹7,200</td></tr></table>`;
+        document.getElementById("detail-modal").style.display = "flex";
+      }
+
+      function showCustomerLedgerView(customerName) {
+        document.getElementById("modal-title").innerText =
+          `📋 Customer Ledger Statement (${customerName})`;
+        document.getElementById("modal-body").innerHTML =
+          `<div style="background:var(--surface-hover); padding:12px; border-radius:8px; margin-bottom:12px;"><strong>Company:</strong> ${customerName}<br><strong>Health:</strong> 🟢 Prime (7 Days)<br><strong>Limit:</strong> ₹15,000 | <strong>Outstanding:</strong> ₹4,200</div><table style="width:100%; border-collapse:collapse; margin-bottom:10px;"><tr><th style="text-align:left; padding:8px;">Date</th><th style="text-align:left; padding:8px;">Particulars</th><th style="text-align:right; padding:8px;">Debit</th><th style="text-align:right; padding:8px;">Credit</th></tr><tr><td style="padding:8px; border-bottom:1px solid var(--border);">20/09/26</td><td style="padding:8px; border-bottom:1px solid var(--border);">Weekly Bill Settled</td><td style="text-align:right; border-bottom:1px solid var(--border);">-</td><td style="text-align:right; border-bottom:1px solid var(--border); color:#34d399;">₹11,160</td></tr><tr><td style="padding:8px; border-bottom:1px solid var(--border);">21/09/26</td><td style="padding:8px; border-bottom:1px solid var(--border);">Morning Tea Subscription</td><td style="text-align:right; border-bottom:1px solid var(--border); color:#f87171;">₹4,200</td><td style="text-align:right; border-bottom:1px solid var(--border);">-</td></tr></table>`;
+        document.getElementById("detail-modal").style.display = "flex";
+      }
+
+      function closeDetailModal() {
+        document.getElementById("detail-modal").style.display = "none";
+      }
+
+      function markReady(itemName, count, building, elementId, type) {
+        if (confirm(`Mark "${itemName}" (${count} pcs) as Ready?`)) {
+          completedItemsTracker[itemName] =
+            (completedItemsTracker[itemName] || 0) + count;
+          const timeNow = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          if (type === "instant")
+            dispatchedInstant.push({
+              time: timeNow,
+              building: building,
+              items: `${itemName} (x${count})`,
+              amount: "₹" + count * 20,
+            });
+          else if (type === "scheduled")
+            dispatchedSched.push({
+              time: timeNow,
+              building: building,
+              items: `${itemName} (x${count})`,
+            });
+          else if (type === "subscription")
+            dispatchedSub.push({
+              company: building,
+              plan: "Bill:",
+              qty: `${itemName} (x${count})`,
+            });
+          if (elementId) {
+            const el = document.getElementById(elementId);
+            if (el) el.classList.add("completed");
+          }
+          loadOrders();
+          updateDispatchTables();
+          updateCompletedKitchenList();
+        }
+      }
+
+      function sendWhatsAppBill(building, items, amount) {
+        window.open(
+          `https://wa.me/?text=` +
+            encodeURIComponent(
+              `*TASTEA FOOD & BEVERAGES - BILL*\n\n🏢 Location/Room: ${building}\n🍽️ Items: ${items}\n💰 Total: ${amount}\n\nThank you! 🙏`,
+            ),
+          "_blank",
+        );
+      }
+
+      function updateCompletedKitchenList() {
+        let compHtml = "";
+        for (let k in completedItemsTracker) {
+          compHtml += `<div class="item-row completed" style="margin-bottom:8px;"><span class="item-name">✅ ${k} (Ready)</span><span class="item-qty" style="color:#94a3b8; background:rgba(255,255,255,0.05);">${completedItemsTracker[k]} pcs</span></div>`;
+        }
+        document.getElementById("kitchen-completed-items").innerHTML =
+          compHtml ||
+          "<div style='font-size:12px; color:var(--text-muted);'>No completed items yet.</div>";
+      }
+
+      function updateDispatchTables() {
+        let instHtml = "";
+        dispatchedInstant.forEach((d) => {
+          instHtml += `<tr><td>${d.time}</td><td><strong>${d.building}</strong></td><td style="color:#34d399;">${d.items}</td><td style="color:var(--accent);">${d.amount}</td><td><button class="btn btn-wa" style="padding:4px 8px; font-size:10px;" onclick="sendWhatsAppBill('${d.building}', '${d.items}', '${d.amount}')">💬 WhatsApp</button> <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="window.print()">🖨️ Print</button></td></tr>`;
+        });
+        document.getElementById("dispatch-instant-tbody").innerHTML =
+          instHtml ||
+          `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No instant dispatch items.</td></tr>`;
+
+        let schedHtml = "";
+        dispatchedSched.forEach((d) => {
+          schedHtml += `<tr><td>${d.time}</td><td><strong>${d.building}</strong></td><td style="color:#f59e0b;">${d.items}</td><td><button class="btn btn-wa" style="padding:4px 8px; font-size:10px;" onclick="sendWhatsAppBill('${d.building}', '${d.items}', 'Batch Challan')">💬 WhatsApp</button> <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="window.print()">🖨️ Challan</button></td></tr>`;
+        });
+        document.getElementById("dispatch-sched-tbody").innerHTML =
+          schedHtml ||
+          `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No scheduled batches ready.</td></tr>`;
+      }
+
+      function switchDispatchTab(subType, btn) {
+        document
+          .querySelectorAll("#panel-dispatch .filter-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document
+          .querySelectorAll(".dispatch-subpanel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .getElementById(`dispatch-sub-${subType}`)
+          .classList.add("active");
+      }
+
+      function switchTab(id) {
+        [
+          "live",
+          "kitchen",
+          "dispatch",
+          "assign",
+          "finance",
+          "customers",
+          "subscriptions",
+          "settings",
+        ].forEach((t) => {
+          const panel = document.getElementById(`panel-${t}`);
+          const menuItem = document.getElementById(`menu-${t}`);
+          if (panel) panel.classList.toggle("active", t === id);
+          if (menuItem) menuItem.classList.toggle("active", t === id);
+        });
+        document.getElementById("fab-menu-popup").classList.remove("open");
+        if (id === "assign") renderAssignGrid();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        syncData();
+        db.collection("orders_rows").onSnapshot(() => loadOrders());
+        db.collection("customers_rows").onSnapshot(() => loadCustomers());
+        renderAssignGrid();
+        renderCatalogGridContainer();
+        renderBuildingsSimpleGrid();
+        renderCorporateSubsTable();
+      });
+
+      function syncData() {
+        loadOrders();
+        loadCustomers();
+      }
+
+      async function loadOrders() {
+        try {
+          const snap = await db.collection("orders_rows").get();
+          let instantRev = 0,
+            schedRev = 0,
+            receivedTotal = 0,
+            todayHtml = "",
+            instantCount = {},
+            lastBuilding = "Office";
+          const todayDateStr = new Date().toISOString().split("T")[0];
+          let ordersList = [];
+          snap.forEach((doc) => ordersList.push(doc.data()));
+          ordersList.sort(
+            (a, b) =>
+              (b.created_at ? new Date(b.created_at).getTime() : 0) -
+              (a.created_at ? new Date(a.created_at).getTime() : 0),
+          );
+
+          ordersList.forEach((o) => {
+            const orderDateStr = o.created_at
+              ? o.created_at.split("T")[0]
+              : todayDateStr;
+            if (orderDateStr !== todayDateStr) return;
+            const total = Number(o.total || o.total_amount || 0);
+            const isPaid =
+              o.payment_status === "paid" ||
+              o.paymentMethod === "online" ||
+              o.paid === true;
+
+            if (o.type === "scheduled") schedRev += total;
+            else instantRev += total;
+            if (isPaid) receivedTotal += total;
+            lastBuilding = o.buildingName || o.building || "Office";
+
+            let itemsText = "No items";
+            const rawItems = o.items_json || o.items || o.cart;
+            if (Array.isArray(rawItems) && rawItems.length > 0) {
+              itemsText = rawItems
+                .map((i) => `${i.name || "Item"} (x${i.qty || 1})`)
+                .join(", ");
+              rawItems.forEach((i) => {
+                instantCount[i.name || "Item"] =
+                  (instantCount[i.name || "Item"] || 0) + Number(i.qty || 1);
+              });
+            } else if (typeof rawItems === "string") {
+              itemsText = rawItems;
+            }
+
+            todayHtml += `<tr><td>${o.created_at ? new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Now"}</td><td><strong>${lastBuilding}</strong><br><span style="color:var(--text-muted); font-size:11px;">${o.guestName || o.name || "Customer"}</span></td><td style="white-space:normal; max-width:180px; font-size:12px; color:#fbbf24;">${itemsText}</td><td style="color:var(--accent); font-weight:bold;">₹${total}</td><td>${isPaid ? `<span class="badge-paid">Paid</span>` : `<span class="badge-risk">Credit</span>`}</td></tr>`;
+          });
+
+          const totalTurnover = instantRev + schedRev + 7200;
+          document.getElementById("stat-instant-rev").innerText =
+            "₹" + instantRev;
+          document.getElementById("stat-sched-rev").innerText = "₹" + schedRev;
+          document.getElementById("stat-sub-rev").innerText = "₹7,200";
+          document.getElementById("stat-total-rev").innerText =
+            "₹" + totalTurnover;
+          document.getElementById("stat-received").innerText =
+            "₹" + receivedTotal;
+          document.getElementById("stat-receivables").innerText =
+            "₹" + (totalTurnover - receivedTotal);
+          document.getElementById("orders-tbody").innerHTML =
+            todayHtml ||
+            `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No orders for today.</td></tr>`;
+
+          document.getElementById("fin-instant").innerText = "₹" + instantRev;
+          document.getElementById("fin-sched").innerText = "₹" + schedRev;
+          document.getElementById("fin-sub").innerText = "₹7,200";
+          document.getElementById("fin-total").innerText = "₹" + totalTurnover;
+          document.getElementById("fin-received").innerText =
+            "₹" + receivedTotal;
+          document.getElementById("fin-receivables").innerText =
+            "₹" + (totalTurnover - receivedTotal);
+
+          let instHtml = "";
+          for (let k in instantCount) {
+            let activeQty = instantCount[k] - (completedItemsTracker[k] || 0);
+            if (activeQty > 0) {
+              let safeKey = k.replace(/[^a-zA-Z0-9]/g, "_");
+              instHtml += `<div id="inst-${safeKey}" class="item-row" onclick="markReady('${k}', ${activeQty}, '${lastBuilding}', 'inst-${safeKey}', 'instant')"><span class="item-name">${k}</span><span class="item-qty">${activeQty}</span></div>`;
+            }
+          }
+          document.getElementById("kitchen-instant-items").innerHTML =
+            instHtml ||
+            "<div style='font-size:12px; color:var(--text-muted);'>All instant orders ready.</div>";
+          updateCompletedKitchenList();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function loadCustomers() {
+        try {
+          const snap = await db.collection("customers_rows").get();
+          const tbody = document.getElementById("customers-tbody");
+          let html = "";
+          snap.forEach((doc) => {
+            const c = doc.data();
+            html += `<tr><td><strong>${c.name || "Customer"}</strong></td><td>${c.contact || "HR Desk"}</td><td>₹${c.creditLimit || 10000}</td><td style="color:#f87171; font-weight:bold;">₹${c.outstanding || 2500}</td><td>🟢 0-7 Days</td><td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="showCustomerLedgerView('${c.name}')">📋 View</button> <button class="btn" style="padding:4px 8px; font-size:10px; background:#f59e0b; color:#060913;" onclick="openEditCreditModal('${c.name}', ${c.creditLimit || 10000})">⚙️ Edit</button> <button class="btn btn-danger" style="padding:4px 8px; font-size:10px;" onclick="confirmBlockCustomer('${c.name}')">🚫 Block</button></td></tr>`;
+          });
+          tbody.innerHTML =
+            `
+            <tr><td><strong>United Nero Solution</strong></td><td>Mr. Ramesh (HR)</td><td>₹15,000</td><td style="color:#f87171; font-weight:bold;">₹4,200</td><td>🟢 0-7 Days</td><td><button class="btn" style="padding:4px 8px; font-size:10px;" onclick="showCustomerLedgerView('United Nero Solution')">📋 View</button> <button class="btn" style="padding:4px 8px; font-size:10px; background:#f59e0b; color:#060913;" onclick="openEditCreditModal('United Nero Solution', 15000)">⚙️ Edit</button> <button class="btn btn-danger" style="padding:4px 8px; font-size:10px;" onclick="confirmBlockCustomer('United Nero Solution')">🚫 Block</button></td></tr>
+          ` + html;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // --- Smart Draggable FAB & Attached Smart Popup Menu Logic ---
+      const fab = document.getElementById("divine-fab");
+      const menuPopup = document.getElementById("fab-menu-popup");
+      let isDrag = false,
+        startX,
+        startY,
+        initX,
+        initY,
+        dist = 0;
+
+      function startDrag(e) {
+        isDrag = true;
+        dist = 0;
+        const clientX =
+          e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+        const clientY =
+          e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+        startX = clientX;
+        startY = clientY;
+        const rect = fab.getBoundingClientRect();
+        initX = rect.left;
+        initY = rect.top;
+        fab.style.bottom = "auto";
+        fab.style.right = "auto";
+        fab.style.left = initX + "px";
+        fab.style.top = initY + "px";
+        menuPopup.classList.remove("open");
+        document.addEventListener("mousemove", onDrag);
+        document.addEventListener("mouseup", endDrag);
+        document.addEventListener("touchmove", onDrag, { passive: false });
+        document.addEventListener("touchend", endDrag);
+      }
+
+      function onDrag(e) {
+        if (!isDrag) return;
+        e.preventDefault();
+        const clientX =
+          e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+        const clientY =
+          e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX,
+          dy = clientY - startY;
+        dist += Math.abs(dx) + Math.abs(dy);
+        let nx = Math.max(
+          10,
+          Math.min(initX + dx, window.innerWidth - fab.offsetWidth - 10),
+        );
+        let ny = Math.max(
+          10,
+          Math.min(initY + dy, window.innerHeight - fab.offsetHeight - 10),
+        );
+        fab.style.left = nx + "px";
+        fab.style.top = ny + "px";
+      }
+
+      function endDrag() {
+        if (!isDrag) return;
+        isDrag = false;
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", endDrag);
+        document.removeEventListener("touchmove", onDrag);
+        document.removeEventListener("touchend", endDrag);
+        const rect = fab.getBoundingClientRect();
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        const isLeft = rect.left + rect.width / 2 < screenWidth / 2;
+        const targetX = isLeft ? 10 : screenWidth - rect.width - 10;
+        const targetY = Math.max(
+          10,
+          Math.min(rect.top, screenHeight - rect.height - 10),
+        );
+
+        fab.style.left = targetX + "px";
+        fab.style.top = targetY + "px";
+
+        if (dist < 5) {
+          const willOpen = !menuPopup.classList.contains("open");
+          if (willOpen) {
+            menuPopup.classList.add("open");
+            const menuWidth = 250;
+            const menuHeight = menuPopup.offsetHeight || 300;
+
+            let menuLeft = isLeft
+              ? targetX + rect.width + 8
+              : targetX - menuWidth - 8;
+            if (menuLeft < 10) menuLeft = 10;
+            if (menuLeft + menuWidth > screenWidth - 10)
+              menuLeft = screenWidth - menuWidth - 10;
+
+            let menuTop = targetY;
+            if (targetY + menuHeight > screenHeight - 10) {
+              menuTop = screenHeight - menuHeight - 10;
+            }
+
+            menuPopup.style.left = menuLeft + "px";
+            menuPopup.style.top = Math.max(10, menuTop) + "px";
+            menuPopup.style.bottom = "auto";
+          } else {
+            menuPopup.classList.remove("open");
+          }
+        }
+      }
+
+      fab.addEventListener("mousedown", startDrag);
+      fab.addEventListener("touchstart", startDrag);
+
+      window.switchTab = switchTab;
+      window.syncData = syncData;
+      window.testRailwayAlarm = testRailwayAlarm;
+      window.markReady = markReady;
+      window.renderAssignGrid = renderAssignGrid;
+      window.toggleProductAssignment = toggleProductAssignment;
+      window.showBalanceSheetDetails = showBalanceSheetDetails;
+      window.showCustomerLedgerView = showCustomerLedgerView;
+      window.closeDetailModal = closeDetailModal;
+      window.switchDispatchTab = switchDispatchTab;
+      window.sendDetailedWeeklyBillWhatsApp = sendDetailedWeeklyBillWhatsApp;
+      window.showDetailedBillModal = showDetailedBillModal;
+      window.openEditCreditModal = openEditCreditModal;
+      window.saveNewCreditLimit = saveNewCreditLimit;
+      window.confirmBlockCustomer = confirmBlockCustomer;
+      window.addNewProduct = addNewProduct;
+      window.openEditProductModal = openEditProductModal;
+      window.saveEditedProduct = saveEditedProduct;
+      window.generateBuildingQR = generateBuildingQR;
+      window.renderCatalogGridContainer = renderCatalogGridContainer;
+      window.filterAdminCatalog = filterAdminCatalog;
+      window.deleteCatalogItem = deleteCatalogItem;
+      window.renderBuildingsSimpleGrid = renderBuildingsSimpleGrid;
+      window.deleteBuildingItem = deleteBuildingItem;
+      window.switchMasterSub = switchMasterSub;
+      window.toggleCollapsibleForm = toggleCollapsibleForm;
+      window.addCorporateSubscription = addCorporateSubscription;
+      window.deleteSubItem = deleteSubItem;
+    </script>
+  </body>
+</html>
